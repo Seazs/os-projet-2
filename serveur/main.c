@@ -6,46 +6,66 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <signal.h>
+#include <sys/socket.h>
+#include <string.h>
 
 #include "imgdist.h"
+#include "../commun/commun.h"
+#include "create_server.h"
 
 void ExempleSignaux(void);
 
+
 int main(int argc, char* argv[]) {
+   // Permet que write() retourne 0 en cas de réception
+   // du signal SIGPIPE.
+   signal(SIGPIPE, SIG_IGN);
    
-   /// Exemple d'utilisation de la biliothèque img-dist ///
-   uint64_t hash1, hash2;
+   // /// Exemple d'utilisation de la biliothèque img-dist ///
+   // uint64_t hash1, hash2;
    
-   // Calcule du code de hachage perceptif de l'image "img/1.bmp" et
-   // conservation de celui-ci dans hash1.
-   if (!PHash("img/1.bmp", &hash1))
-      return 1; // Échec dans le chargement de l'image (message sur stderr automatique)
+   // // Calcule du code de hachage perceptif de l'image "img/1.bmp" et
+   // // conservation de celui-ci dans hash1.
+   // if (!PHash("img/1.bmp", &hash1))
+   //    return 1; // Échec dans le chargement de l'image (message sur stderr automatique)
    
-   // Idem pour "img/2.bmp".
-   if (!PHash("img/2.bmp", &hash2))
-      return 1;
+   // // Idem pour "img/2.bmp".
+   // if (!PHash("img/2.bmp", &hash2))
+   //    return 1;
    
-   // Calculer la distance entre hash1 et hash2
-   unsigned int distance = DistancePHash(hash1, hash2);
+   // // Calculer la distance entre hash1 et hash2
+   // unsigned int distance = DistancePHash(hash1, hash2);
    
-   // Afficher la distance entre les deux images (valeur de retour d'img-dist dans le projet 1
-   // quand il n'y avait pas d'erreur).
-   printf("Distance entre les images 'img/1.bmp' et 'img/2.bmp' : %d\n", distance);
+   // // Afficher la distance entre les deux images (valeur de retour d'img-dist dans le projet 1
+   // // quand il n'y avait pas d'erreur).
+   // printf("Distance entre les images 'img/1.bmp' et 'img/2.bmp' : %d\n", distance);
    
-   /// Fin de l'exemple d'utilisation de la biliothèque img-dist ///
+   // /// Fin de l'exemple d'utilisation de la biliothèque img-dist ///
    
-   /// Exemple gestion de signaux (cf Annexe de l'énoncé & corrigé du projet 1) ///
+   // /// Exemple gestion de signaux (cf Annexe de l'énoncé & corrigé du projet 1) ///
    
-   //ExempleSignaux();
+   // //ExempleSignaux();
    
-   while (true)
-   {
-      continue;
+   int server_fd =  checked(socket(AF_INET, SOCK_STREAM, 0));
+   int serveur_socket = create_socket(server_fd);
+
+   
+   char buffer[1024];
+   uint32_t longueur;
+   
+   while(lire_exactement(serveur_socket, (char*)&longueur, sizeof(longueur))
+         && lire_exactement(serveur_socket, buffer, ntohl(longueur))){
+      printf("Recu du cote serveur : %s\n", buffer);
+      checked_wr(write(serveur_socket, buffer, ntohl(longueur)));
    }
+
+   
    
    /// ///
    
    
+   close(server_fd);
+   close(serveur_socket);
    
    return 0;
 }

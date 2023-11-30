@@ -17,6 +17,9 @@ OBJS_CLIENT=
 
 all: img-search pokedex-client
 
+launch: all
+	./img-search & ./pokedex-client
+
 libimg-dist.a:
 	(cd img-dist ; make)
 

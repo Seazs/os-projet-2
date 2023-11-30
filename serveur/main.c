@@ -36,7 +36,12 @@ int main(int argc, char* argv[]) {
    
    /// Exemple gestion de signaux (cf Annexe de l'énoncé & corrigé du projet 1) ///
    
-   ExempleSignaux();
+   //ExempleSignaux();
+   
+   while (true)
+   {
+      continue;
+   }
    
    /// ///
    

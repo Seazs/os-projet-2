@@ -29,8 +29,8 @@ OBJS_CLIENT := $(filter-out main.o, $(OBJS_CLIENT))
 all: img-search pokedex-client
 
 launch: all
-	gnome-terminal --tab --title="Serveur" --command=" ./img-search; exec bash'" \
-	--tab --title="Client" --command=" ./pokedex-client; exec bash'"
+	gnome-terminal --tab --title="Serveur" --command=" ./img-search" \
+	--tab --title="Client" --command=" ./pokedex-client"
 
 run: all
 	./img-search & ./pokedex-client

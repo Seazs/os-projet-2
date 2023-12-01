@@ -53,12 +53,25 @@ int main(int argc, char* argv[]) {
    char buffer[1024];
    uint32_t longueur;
    
-   while(lire_exactement(serveur_socket, (char*)&longueur, sizeof(longueur))
-         && lire_exactement(serveur_socket, buffer, ntohl(longueur))){
-      printf("Recu du cote serveur : %s\n", buffer);
-      checked_wr(write(serveur_socket, buffer, ntohl(longueur)));
-   }
+   // while(lire_exactement(serveur_socket, (char*)&longueur, sizeof(longueur))
+   //       && lire_exactement(serveur_socket, buffer, ntohl(longueur))){
+   //    printf("Recu du cote serveur : %s\n", buffer);
+   //    send_message(serveur_socket, buffer);
+   // }
 
+   while(1){
+      printf("1\n");
+      if(!lire_exactement(serveur_socket, (char*)&longueur, sizeof(longueur))){
+         break;
+      }
+      printf("2\n");
+      if(!lire_exactement(serveur_socket, buffer, ntohl(longueur))){
+         break;
+      }
+      printf("3\n");
+      printf("Recu du cote serveur : %s\n", buffer);
+      send_message(serveur_socket, buffer);
+   }
    
    
    /// ///

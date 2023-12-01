@@ -21,7 +21,7 @@ int create_socket(int server_fd){
     address.sin_port = htons(PORT);
 
     checked(bind(server_fd, (struct sockaddr*) &address, sizeof(address)));
-    checked(listen(server_fd, MAX_CONNEXION));
+    checked(listen(server_fd, 3));
 
     size_t addrlen = sizeof(address);
     int new_socket = checked(accept(server_fd, (struct sockaddr*) &address, (socklen_t*) &addrlen));

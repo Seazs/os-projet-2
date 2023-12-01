@@ -10,6 +10,7 @@
 #include "../commun/commun.h"
 #include "../serveur/imgdist.h"
 #include "connect_server.h"
+#include "client_message_transmission.h"
 
 
 int main(int argc, char* argv[]) {
@@ -22,17 +23,24 @@ int main(int argc, char* argv[]) {
    uint32_t longueur;
 
    while (fgets(buffer, 1024, stdin) != NULL) {
-      longueur = strlen(buffer) + 1;
-      longueur = htonl(longueur);
-      checked_wr(write(sock, &longueur, sizeof(longueur)));
-      longueur = ntohl(longueur);
-      checked_wr(write(sock, buffer, longueur));
+      // longueur = strlen(buffer) + 1;
+      // longueur = htonl(longueur);
+      // checked_wr(write(sock, &longueur, sizeof(longueur)));
+      // longueur = ntohl(longueur);
+      // checked_wr(write(sock, buffer, longueur));
 
-      if (!lire_exactement(sock, &longueur, sizeof(longueur))) {
-         return 1;
+      if(!send_image(sock, buffer)){
+         printf("Image envoyée\n");
+         receive_message(sock, buffer);
+      }
+      else if (!send_message(sock, buffer)) {
+         
+         receive_message(sock, buffer);
+      }
+      else{
+         printf("Erreur lors de l'envoi\n");
       }
 
-      printf("Recu : %s\n", buffer);
    }
 
    close(sock);

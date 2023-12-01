@@ -18,22 +18,16 @@ int send_message(int socket, char *message){
 }
 
 int receive_image(int socket, char* raw_image[], FILE *image_file){
-    int bytes_read;
+
     // récupère la taille de l'image
     long longueur;
-    //lire_exactement(socket, (char*)&longueur, sizeof(longueur));
     recv(socket, &longueur, sizeof(longueur), 0);
-
-
 
     // reçoit l'image
     recv(socket, raw_image, longueur, 0);
 
     // écrit l'image dans un fichier
     fwrite(raw_image, 1, longueur, image_file);
-
-    
-
     printf("server: Image reçue\n");
     return 0;
 }

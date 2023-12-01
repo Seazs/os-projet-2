@@ -66,13 +66,14 @@ int main(int argc, char* argv[]) {
          printf("ouverture du fichier image_recue.bmp\n");
          FILE *image_file = fopen("image_recue.bmp", "wb");
          if(!receive_image(serveur_socket, raw_image, image_file)){
-            fclose(image_file);
+            
             
             send_message(serveur_socket, "Image reçue avec succès");
          }
          else{
             printf("Erreur lors de la réception de l'image\n");
          }
+         fclose(image_file);
       }
       else if(strcmp(buffer, "message") == 0){
          printf("Server:  Message reçu \n");

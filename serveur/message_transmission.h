@@ -3,7 +3,7 @@
 
 
 int send_message(int socket, char *message);
-void receive_image(int socket, char raw_image[], FILE *image_file);
+int receive_image(int socket, char* raw_image[], FILE *image_file);
 
 int receive_message(int socket, char *message);
 

@@ -11,6 +11,8 @@ int _checked(int ret, char* calling_function);
 
 bool lire_exactement(int fd, char* buffer, int size);
 
+void clean_str(char *path);
+
 
 // The macro allows us to retrieve the name of the calling function
 #define checked(call) _checked(call, #call)

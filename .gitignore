@@ -2,3 +2,4 @@
 *.a
 ./img-dist/*.o
 .vscode
+image_recue.bmp

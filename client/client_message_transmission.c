@@ -7,39 +7,67 @@
 #include "../commun/commun.h"
 #include "client_message_transmission.h"
 
+int send_annonce(int socket, char *annonce){
+    // envoie "annonce" au serveur afin d'annoncer que le client souhaite envoyer un message
+    uint32_t longueur;
+    longueur = strlen(annonce) + 1;
+    longueur = htonl(longueur);
+    checked_wr(write(socket, &longueur, sizeof(longueur)));
+    longueur = ntohl(longueur);
+    checked_wr(write(socket, annonce, longueur));
+    return 0;
+}
+
 int send_message(int socket, char *message){
-    
+    // envoie "message" au serveur afin d'annoncer que le client souhaite envoyer un message
+    send_annonce(socket, "message");
+
+    // envoie le message
     uint32_t longueur = strlen(message) + 1;
     longueur = htonl(longueur);
     checked_wr(write(socket, &longueur, sizeof(longueur)));
     longueur = ntohl(longueur);
     checked_wr(write(socket, message, longueur));
-    printf("client: Message envoyé : %s\n", message);
+    printf("client Message envoyé : %s\n", message);
     return 0;
 }
 
 int send_image(int socket, char *image_path){
+
+    // envoie "img" au serveur afin d'annoncer que le client souhaite envoyer une image
+    
+
+    clean_str(image_path);
     FILE *image_file = fopen(image_path, "rb");
     if(image_file == NULL){
         perror("fopen()");
         return 1;
     }
-
-    char buffer[1024];
-    int bytes_read;
+    send_annonce(socket, "img");
+    
     // récupère la taille de l'image
-    long longueur = 0;
+    
     fseek(image_file, 0, SEEK_END);
-    longueur = ftell(image_file);
+    long longueur = ftell(image_file);
     fseek(image_file, 0, SEEK_SET);
 
-    // envoie la taille de l'image
-    checked_wr(write(socket, &longueur, sizeof(longueur)));
+    checked_wr(send(socket, &longueur, sizeof(longueur), 0));
 
-    while((bytes_read = fread(buffer, 1, sizeof(buffer), image_file)) > 0){
-        
-        checked_wr(write(socket, buffer, bytes_read));
+    // // envoie la taille de l'image
+    // checked_wr(write(socket, &longueur, sizeof(longueur)));
+
+    char *raw_image = (char *)malloc(longueur);
+    if(raw_image == NULL){
+        perror("malloc()");
+        fclose(image_file);
+        return 1;
     }
+
+    fread(raw_image, 1, longueur, image_file);
+
+    // envoie l'image
+    checked_wr(send(socket, raw_image, longueur, 0));
+    free(raw_image);
 
     fclose(image_file);
     printf("client: Image envoyée: %s\n", image_path);
@@ -57,3 +85,4 @@ int receive_message(int socket, char *buffer){
     printf("client: Message reçu: %s\n", buffer);
     return 0;
 }
+

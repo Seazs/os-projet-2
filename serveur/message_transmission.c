@@ -17,29 +17,35 @@ int send_message(int socket, char *message){
     return 0;
 }
 
-void receive_image(int socket, char raw_image[], FILE *image_file){
-    
+int receive_image(int socket, char* raw_image[], FILE *image_file){
     int bytes_read;
     // récupère la taille de l'image
-    long longueur = 0;
-    lire_exactement(socket, (char*)&longueur, sizeof(longueur));
-    longueur = ntohl(longueur);
+    long longueur;
+    //lire_exactement(socket, (char*)&longueur, sizeof(longueur));
+    recv(socket, &longueur, sizeof(longueur), 0);
 
-    char buffer[longueur];
+
+
     // reçoit l'image
-    while((bytes_read = read(socket, buffer, sizeof(buffer))) > 0){
-        strcat(raw_image, buffer);
-        fwrite(buffer, 1, bytes_read, image_file);
-    }
+    recv(socket, raw_image, longueur, 0);
+
+    // écrit l'image dans un fichier
+    fwrite(raw_image, 1, longueur, image_file);
+
+    
+
     printf("server: Image reçue\n");
+    return 0;
 }
 
 
 int receive_message(int socket, char *buffer){
     uint32_t longueur;
+    printf("1\n");
     if(!lire_exactement(socket, (char*)&longueur, sizeof(longueur))){
         return 1;
     }
+    printf("2\n");
     if(!lire_exactement(socket, buffer, ntohl(longueur))){
         return 1;
     }

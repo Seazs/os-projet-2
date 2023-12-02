@@ -12,6 +12,7 @@
 #include "imgdist.h"
 #include "../commun/commun.h"
 #include "create_server.h"
+#include "handle_client.h"
 
 void ExempleSignaux(void);
 
@@ -54,43 +55,7 @@ int main(int argc, char* argv[]) {
    
 
    while(1){
-
-      
-
-      receive_message(serveur_socket, buffer);
-      printf("Annonce Recu du cote serveur : %s\n", buffer);
-      clean_str(buffer);
-
-      if(strcmp(buffer, "img") == 0){
-         char raw_image[20000];
-         printf("ouverture du fichier image_recue.bmp\n");
-         FILE *image_file = fopen("image_recue.bmp", "wb");
-         if(!receive_image(serveur_socket, raw_image, image_file)){
-            
-            
-            send_message(serveur_socket, "Image reçue avec succès");
-         }
-         else{
-            printf("Erreur lors de la réception de l'image\n");
-         }
-         fclose(image_file);
-      }
-      else if(strcmp(buffer, "message") == 0){
-         printf("Server:  Message reçu \n");
-         if(!receive_message(serveur_socket, buffer)){
-            printf("Recu du cote serveur : %s\n", buffer);
-            if (strcmp(buffer, "exit") == 0) {
-               printf("Serveur déconnecté\n");
-               send_message(serveur_socket, "serveur déconnecté");
-               break;
-            }
-            send_message(serveur_socket, buffer);
-         }
-         printf("lala\n");
-      }
-      else{
-         printf("Erreur, pas de signal d'annonce reçu\n");
-      }
+      handle_server_response(serveur_socket);
    }
    
    

@@ -35,11 +35,9 @@ int receive_image(int socket, char* raw_image[], FILE *image_file){
 
 int receive_message(int socket, char *buffer){
     uint32_t longueur;
-    printf("1\n");
     if(!lire_exactement(socket, (char*)&longueur, sizeof(longueur))){
         return 1;
     }
-    printf("2\n");
     if(!lire_exactement(socket, buffer, ntohl(longueur))){
         return 1;
     }

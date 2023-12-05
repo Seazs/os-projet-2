@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 
 #include "handle_client.h"
+#include "image_comparison.h"
 
 typedef struct {
     int socket;
@@ -38,6 +39,8 @@ void handle_image(int serveur_socket) {
     printf("ouverture du fichier image_recue.bmp\n");
     FILE *image_file = fopen("image_recue.bmp", "wb");
     if(!receive_image(serveur_socket, raw_image, image_file)){
+        char *best_score;
+        compare_image(raw_image, best_score);
         send_message(serveur_socket, "Image reçue avec succès");
     }
     else{

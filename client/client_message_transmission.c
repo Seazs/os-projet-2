@@ -34,15 +34,18 @@ int send_message(int socket, char *message){
 
 int send_image(int socket, char *image_path){
 
-    // envoie "img" au serveur afin d'annoncer que le client souhaite envoyer une image
     
-
+    // vérifie que l'extension du fichier est bien .bmp
+    if (strstr(image_path, ".bmp") == NULL){
+        return 1;
+    }
     clean_str(image_path);
     FILE *image_file = fopen(image_path, "rb");
     if(image_file == NULL){
         perror("fopen()");
         return 1;
     }
+    // envoie "img" au serveur afin d'annoncer que le client souhaite envoyer une image
     send_annonce(socket, "img");
     
     // récupère la taille de l'image

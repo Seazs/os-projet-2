@@ -8,6 +8,8 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <dirent.h>
+#include <stdlib.h>
 
 #include "imgdist.h"
 #include "../commun/commun.h"
@@ -16,8 +18,43 @@
 
 void ExempleSignaux(void);
 
+char **images_path;
+
+int compareStrings(const void *a, const void *b) {
+    return strcmp(*(const char **)a, *(const char **)b);
+}
+
+void init_images_path(){
+   DIR *d;
+   struct dirent *dir;
+   int file_count = 0;
+
+   d = opendir("img/");
+   if (d == NULL) {
+      perror("erreur lors de l'ouverture du dossier img");
+      exit(1);
+   }
+
+   
+   while ((dir = readdir(d)) != NULL) {
+      images_path = realloc(images_path, sizeof(char*) * (file_count + 1));
+      images_path[file_count] = malloc(sizeof(char) * (strlen(dir->d_name) + 1));
+      strcpy(images_path[file_count], dir->d_name);
+      file_count++;
+   }
+   closedir(d);
+
+   
+   qsort(images_path, file_count, sizeof(char*), compareStrings);
+}
 
 int main(int argc, char* argv[]) {
+   init_images_path();
+   //imprime les chemin des images
+   for(int i = 0; i < 100; i++){
+      printf("%s\n", images_path[i]);
+   }
+
    // Permet que write() retourne 0 en cas de réception
    // du signal SIGPIPE.
    signal(SIGPIPE, SIG_IGN);
@@ -45,7 +82,7 @@ int main(int argc, char* argv[]) {
    
    // /// Exemple gestion de signaux (cf Annexe de l'énoncé & corrigé du projet 1) ///
    
-   // //ExempleSignaux();
+   ExempleSignaux();
    
    int server_fd =  checked(socket(AF_INET, SOCK_STREAM, 0));
    int serveur_socket = create_socket(server_fd);

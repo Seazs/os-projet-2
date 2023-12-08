@@ -22,15 +22,22 @@ typedef struct {
 unsigned int compare_image(char *raw_image, char *db_image){
     uint64_t hash1, hash2;
     unsigned int size_raw_image = sizeof(raw_image);
-    if (!PHashRaw(raw_image, size_raw_image, &hash1)) {
-        printf("Erreur lors du calcul du hash de l'image reçue\n");
-        return 1;
-    }
-
+    printf("size_raw_image : %d\n", size_raw_image);
+    printf("image reçue : %s\n", raw_image);
     if(!PHash(db_image, &hash2)){
         printf("Erreur lors du calcul du hash de l'image de la base de données\n");
-        return 1;
+        return 100;
     }
+    // if (!PHashRaw(raw_image, size_raw_image, &hash1)) {
+    //     printf("Erreur lors du calcul du hash de l'image reçue\n");
+    //     return 1;
+    // }
+    const char *image_path = "./img/101.bmp";
+    if (!PHash(image_path, &hash1)) {
+        printf("Erreur lors du calcul du hash de l'image reçue\n");
+        return 100;
+    }
+    
 
     unsigned int distance = DistancePHash(hash1, hash2);
     printf("Distance entre les deux images : %d\n", distance);
@@ -82,6 +89,17 @@ void handle_threads(char *raw_image, int client_socket){
             exit(1);
         }
     }
+    // récupère le meilleur résultat
+    unsigned int best_distance = 100;
+    char *best_image_path = NULL;
+    for(int i = 0; i<NB_THREADS; i++){
+        if(thread_data[i].best_distance < best_distance){
+            best_distance = thread_data[i].best_distance;
+            best_image_path = thread_data[i].best_image_path;
+        }
+    }
+    printf("Meilleure distance : %d\n", best_distance);
+    printf("Meilleure image : %s\n", best_image_path);
 }
 
 

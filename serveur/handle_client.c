@@ -36,7 +36,7 @@ void * handle_comparison(int client_socket){
 }
 void handle_image(int serveur_socket) {
     // image de max 20000 octets
-    char *raw_image;
+    char *raw_image[20000];
     printf("ouverture du fichier image_recue.bmp\n");
     FILE *image_file = fopen("image_recue.bmp", "wb");
     if(!receive_image(serveur_socket, raw_image, image_file)){

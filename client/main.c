@@ -15,7 +15,7 @@
 
 int main(int argc, char* argv[]) {
    // attendre que le serveur soit prêt
-   sleep(3);
+   sleep(1);
    signal(SIGPIPE, SIG_IGN);
 
    int sock = checked(socket(AF_INET, SOCK_STREAM, 0));
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
    char buffer[1024];
    uint32_t longueur;
-
+   printf("Entrez un message ou un chemin d'image: \n");
    while (fgets(buffer, 1024, stdin) != NULL) {
       // longueur = strlen(buffer) + 1;
       // longueur = htonl(longueur);
@@ -31,11 +31,11 @@ int main(int argc, char* argv[]) {
       // longueur = ntohl(longueur);
       // checked_wr(write(sock, buffer, longueur));
 
-      if(!send_image(sock, buffer)){
+      if(send_image(sock, buffer)){
          printf("Image envoyée\n");
          receive_message(sock, buffer);
       }
-      else if (!send_message(sock, buffer)) {
+      else if (send_message(sock, buffer)) {
          
          receive_message(sock, buffer);
       }
@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
          printf("Erreur lors de l'envoi\n");
       }
 
+      printf("Entrez un message ou un chemin d'image: \n");
    }
 
    close(sock);

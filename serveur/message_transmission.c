@@ -24,10 +24,9 @@ int receive_image(int socket, char* raw_image[], FILE *image_file){
     long longueur;
     recv(socket, &longueur, sizeof(longueur), 0);
 
-    raw_image = malloc(longueur);
+    *raw_image = malloc(longueur);
     // reçoit l'image
     recv(socket, raw_image, longueur, 0);
-
     // écrit l'image dans un fichier
     fwrite(raw_image, 1, longueur, image_file);
     printf("server: Image reçue\n");

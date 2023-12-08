@@ -29,7 +29,7 @@ int send_message(int socket, char *message){
     longueur = ntohl(longueur);
     checked_wr(write(socket, message, longueur));
     printf("client Message envoyé : %s\n", message);
-    return 0;
+    return 1;
 }
 
 int send_image(int socket, char *image_path){
@@ -37,13 +37,13 @@ int send_image(int socket, char *image_path){
     
     // vérifie que l'extension du fichier est bien .bmp
     if (strstr(image_path, ".bmp") == NULL){
-        return 1;
+        return 0;
     }
     clean_str(image_path);
     FILE *image_file = fopen(image_path, "rb");
     if(image_file == NULL){
         perror("fopen()");
-        return 1;
+        return 0;
     }
     // envoie "img" au serveur afin d'annoncer que le client souhaite envoyer une image
     send_annonce(socket, "img");
@@ -62,7 +62,7 @@ int send_image(int socket, char *image_path){
     if(raw_image == NULL){
         perror("malloc()");
         fclose(image_file);
-        return 1;
+        return 0;
     }
 
     fread(raw_image, 1, longueur, image_file);
@@ -73,7 +73,7 @@ int send_image(int socket, char *image_path){
 
     fclose(image_file);
     printf("client: Image envoyée: %s\n", image_path);
-    return 0;
+    return 1;
 }
 
 int receive_message(int socket, char *buffer){

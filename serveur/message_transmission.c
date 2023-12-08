@@ -19,10 +19,12 @@ int send_message(int socket, char *message){
 
 int receive_image(int socket, char* raw_image[], FILE *image_file){
 
+
     // récupère la taille de l'image
     long longueur;
     recv(socket, &longueur, sizeof(longueur), 0);
 
+    raw_image = malloc(longueur);
     // reçoit l'image
     recv(socket, raw_image, longueur, 0);
 

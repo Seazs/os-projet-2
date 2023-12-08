@@ -14,6 +14,8 @@
 
 
 int main(int argc, char* argv[]) {
+   // attendre que le serveur soit prêt
+   sleep(3);
    signal(SIGPIPE, SIG_IGN);
 
    int sock = checked(socket(AF_INET, SOCK_STREAM, 0));

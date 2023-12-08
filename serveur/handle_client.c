@@ -16,7 +16,7 @@ void * handle_client(void* socket){
     Client client = *(Client*)socket;
     int client_socket = client.socket;
     
-    handle_comparison(client_socket);
+    handle_server_response(client_socket);
 
     close(client_socket);
     free(socket);
@@ -25,7 +25,7 @@ void * handle_client(void* socket){
 }
 
 void * handle_comparison(int client_socket){
-    char raw_image[20000];
+    char *raw_image;
     FILE *image_file = fopen("image_recue.bmp", "wb");
     receive_image(client_socket, raw_image, image_file);
     fclose(image_file);
@@ -35,13 +35,13 @@ void * handle_comparison(int client_socket){
     
 }
 void handle_image(int serveur_socket) {
-    char raw_image[20000];
+    // image de max 20000 octets
+    char *raw_image;
     printf("ouverture du fichier image_recue.bmp\n");
     FILE *image_file = fopen("image_recue.bmp", "wb");
     if(!receive_image(serveur_socket, raw_image, image_file)){
-        char *best_score;
-        compare_image(raw_image, best_score);
         send_message(serveur_socket, "Image reçue avec succès");
+        handle_threads(raw_image, serveur_socket);
     }
     else{
         printf("Erreur lors de la réception de l'image\n");

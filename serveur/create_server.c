@@ -14,11 +14,14 @@
  * @return Le nouveau descripteur de socket.
  */
 int create_socket(int server_fd){
+    printf("1\n");
     // Création d'un descripteur de fichier pour le socket
 
     int opt = 1;
     // Configuration du socket pour réutiliser l'adresse et le port
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
+
+    printf("2\n");
 
     // Configuration de l'adresse du serveur
     struct sockaddr_in address;
@@ -27,13 +30,14 @@ int create_socket(int server_fd){
     address.sin_port = htons(PORT);  // Conversion du numéro de port en format réseau
 
     // Liaison du socket à l'adresse et au port spécifiés
-    checked(bind(server_fd, (struct sockaddr*) &address, sizeof(address)));
+    checked(bind(server_fd, (struct sockaddr *)&address, sizeof(address)));
+    printf("3\n");
     // Mise en écoute du socket pour les connexions entrantes
     checked(listen(server_fd, 3));
-
+    printf("4\n");
     // Acceptation d'une nouvelle connexion et création d'un nouveau socket pour celle-ci
     size_t addrlen = sizeof(address);
-    int new_socket = checked(accept(server_fd, (struct sockaddr*) &address, (socklen_t*) &addrlen));
-
+    int new_socket = checked(accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen));
+    printf("5\n");
     return new_socket;  // Retour du nouveau descripteur de socket
 }

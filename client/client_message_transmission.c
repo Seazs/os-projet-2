@@ -54,11 +54,10 @@ int send_image(int socket, char *image_path){
     long longueur = ftell(image_file);
     fseek(image_file, 0, SEEK_SET);
 
+    // envoie la taille de l'image
     checked_wr(send(socket, &longueur, sizeof(longueur), 0));
 
-    // // envoie la taille de l'image
-    // checked_wr(write(socket, &longueur, sizeof(longueur)));
-
+    
     char *raw_image = (char *)malloc(longueur);
     if(raw_image == NULL){
         perror("malloc()");

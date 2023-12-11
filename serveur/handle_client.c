@@ -12,6 +12,8 @@ typedef struct {
     
 } Client;
 
+
+
 void * handle_client(void* socket){
     Client client = *(Client*)socket;
     int client_socket = client.socket;
@@ -36,17 +38,20 @@ void * handle_comparison(int client_socket){
 }
 void handle_image(int serveur_socket) {
     // image de max 20000 octets
-    char *raw_image[20000];
+    Image *image = (Image *)malloc(sizeof(Image));
     printf("ouverture du fichier image_recue.bmp\n");
     FILE *image_file = fopen("image_recue.bmp", "wb");
-    if(!receive_image(serveur_socket, raw_image, image_file)){
+    if(!receive_image(serveur_socket, image, image_file)){
+        printf("raw_image : %s\n", image->raw_image);
+        fclose(image_file);
         send_message(serveur_socket, "Image reçue avec succès");
-        handle_threads(raw_image, serveur_socket);
+        handle_threads(image, serveur_socket);
+        free(image);
     }
     else{
         printf("Erreur lors de la réception de l'image\n");
     }
-    fclose(image_file);
+    
 }
 
 void handle_message(int serveur_socket, char* buffer) {

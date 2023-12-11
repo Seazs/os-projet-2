@@ -1,6 +1,11 @@
 #ifndef _HANDLE_CLIENT_H_
 #define _HANDLE_CLIENT_H_
 
+typedef struct {
+    unsigned int taille;
+    char *raw_image;
+} Image;
+
 void * handle_client(void* socket);
 
 void * handle_comparison(int client_socket);

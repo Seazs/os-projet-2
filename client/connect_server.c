@@ -9,7 +9,7 @@
 
 
 void connect_to_server(int sock){
-    printf("---------------------- Connecting to server ----------------------\n");
+    //printf("---------------------- Connecting to server ----------------------\n");
     struct sockaddr_in address;
 
     address.sin_family = AF_INET;
@@ -20,5 +20,5 @@ void connect_to_server(int sock){
 
     checked(connect(sock, (struct sockaddr *)&address, sizeof(address)));
 
-    printf("---------------------- Connected to server ----------------------\n");
+    //printf("---------------------- Connected to server ----------------------\n");
 }

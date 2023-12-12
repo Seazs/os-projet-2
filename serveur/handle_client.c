@@ -3,6 +3,8 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <stdbool.h>
+#include <pthread.h>
 
 #include "handle_client.h"
 #include "image_comparison.h"
@@ -26,16 +28,7 @@ void * handle_client(void* socket){
     
 }
 
-void * handle_comparison(int client_socket){
-    char *raw_image;
-    FILE *image_file = fopen("image_recue.bmp", "wb");
-    receive_image(client_socket, raw_image, image_file);
-    fclose(image_file);
-    system("xdg-open image_reçue.bmp");
-    printf("Image reçue\n");
 
-    
-}
 void handle_image(int serveur_socket) {
     // image de max 20000 octets
     Image *image = (Image *)malloc(sizeof(Image));
@@ -44,7 +37,7 @@ void handle_image(int serveur_socket) {
     if(!receive_image(serveur_socket, image, image_file)){
         printf("raw_image : %s\n", image->raw_image);
         fclose(image_file);
-        send_message(serveur_socket, "Image reçue avec succès");
+        //send_message(serveur_socket, "Image reçue avec succès");
         handle_threads(image, serveur_socket);
         free(image);
     }
@@ -55,31 +48,52 @@ void handle_image(int serveur_socket) {
 }
 
 void handle_message(int serveur_socket, char* buffer) {
-    printf("Server:  Message reçu \n");
     if(!receive_message(serveur_socket, buffer)){
         printf("Recu du cote serveur : %s\n", buffer);
-        if (strcmp(buffer, "exit") == 0) {
-            printf("Serveur déconnecté\n");
-            send_message(serveur_socket, "serveur déconnecté");
-            return;
-        }
         send_message(serveur_socket, buffer);
     }
 }
 
 void handle_server_response(int serveur_socket) {
     char buffer[1024];
-    receive_message(serveur_socket, buffer);
-    printf("Annonce Recu du cote serveur : %s\n", buffer);
-    clean_str(buffer);
+    bool is_connected = true;
 
-    if(strcmp(buffer, "img") == 0){
-        handle_image(serveur_socket);
+    while(is_connected) {
+        receive_message(serveur_socket, buffer);
+        printf("Annonce Recu du cote serveur : %s\n", buffer);
+        clean_str(buffer);
+
+        if(strcmp(buffer, "img") == 0){
+            handle_image(serveur_socket);
+        }
+        else if(strcmp(buffer, "message") == 0){
+            handle_message(serveur_socket, buffer);
+        }
+        // else if(strcmp(buffer, "exit") == 0){
+        //     printf("Client déconnecté\n");
+        //     is_connected = false;
+        // }
+        else{
+            printf("Erreur, pas de signal d'annonce reçu\n");
+            is_connected = false;
+        }
+        // wait 5 seconds
     }
-    else if(strcmp(buffer, "message") == 0){
-        handle_message(serveur_socket, buffer);
-    }
-    else{
-        printf("Erreur, pas de signal d'annonce reçu\n");
+}
+
+void accept_connections(int server_socket) {
+    while(1) {
+        Client* client = (Client*)malloc(sizeof(Client));
+        client->socket = accept(server_socket, NULL, NULL);
+        if(client->socket < 0) {
+            perror("accept");
+            continue;
+        }
+
+        pthread_t thread_id;
+        if(pthread_create(&thread_id, NULL, handle_client, client) != 0) {
+            perror("pthread_create");
+            continue;
+        }
     }
 }

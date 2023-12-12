@@ -8,7 +8,7 @@ function test_new_images() {
    
    while read -r line; do
       values=($line)
-      result=$(cd ..; ./pokedex-client <<< "test/img/${values[0]}.bmp" | tail -n 1)
+      result=$(cd ..; ./pokedex-client <<< "test/img/${values[0]}.bmp" | tail -n 10)
       expected_result="Most similar image found: 'img/${values[1]}.bmp' with a distance of ${values[2]}."
       
       echo -n "Test #$test_num  --  ./pokedex-client <<< test/img/${values[0]}.bmp ... "

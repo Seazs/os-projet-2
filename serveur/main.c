@@ -58,24 +58,16 @@ int main(int argc, char* argv[]) {
    //ExempleSignaux();
    
    int server_fd =  checked(socket(AF_INET, SOCK_STREAM, 0));
-   int serveur_socket = create_socket(server_fd);
+   create_socket(server_fd);
+   
    init_images_path();
-   printf("Serveur en écoute\n");
+   //printf("Serveur en écoute\n");
 
+   accept_connections(server_fd);
    
-   char buffer[1024];
-   
-
-   while(1){
-      handle_server_response(serveur_socket);
-   }
-   
-   
-   /// ///
    
    
    close(server_fd);
-   close(serveur_socket);
    clean_images_path();
    
    return 0;

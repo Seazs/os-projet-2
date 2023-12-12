@@ -13,10 +13,18 @@ int send_message(int socket, char *message){
     checked_wr(write(socket, &longueur, sizeof(longueur)));
     longueur = ntohl(longueur);
     checked_wr(write(socket, message, longueur));
-    printf("server: Message envoyé\n");
+    //printf("server: Message envoyé\n");
     return 0;
 }
 
+int send_number(int socket, int number){
+    uint32_t longueur = sizeof(number);
+    longueur = htonl(longueur);
+    checked_wr(write(socket, &longueur, sizeof(longueur)));
+    longueur = ntohl(longueur);
+    checked_wr(write(socket, &number, longueur));
+    return 0;
+}
 /*
 */
 int receive_image(int socket, Image* image, FILE *image_file){
@@ -34,14 +42,11 @@ int receive_image(int socket, Image* image, FILE *image_file){
         return 1;
     }
     image->taille = longueur;
-    printf("longueur : %ld\n", longueur);
     image->raw_image = (char *)malloc(longueur);
     // reçoit l'image
     recv(socket, image->raw_image, longueur, 0);
-    printf("raw_image : %s\n", image->raw_image);
     // écrit l'image dans un fichier
     fwrite(image->raw_image, 1, longueur, image_file);
-    printf("raw_image : %s\n", image->raw_image);
     printf("server: Image reçue\n");
     return 0;
 }
@@ -55,6 +60,6 @@ int receive_message(int socket, char *buffer){
     if(!lire_exactement(socket, buffer, ntohl(longueur))){
         return 1;
     }
-    printf("server: Message reçu\n");
+    clean_str(buffer);
     return 0;
 }

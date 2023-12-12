@@ -3,6 +3,6 @@
 
 
 
-int create_socket(int server_fd);
+void create_socket(int server_fd);
 
 #endif

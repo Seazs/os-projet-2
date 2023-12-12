@@ -35,6 +35,9 @@ launch: all
 run: all
 	./img-search & ./pokedex-client
 
+tests: all
+	cd test && ./tests
+
 libimg-dist.a:
 	(cd img-dist ; make)
 
@@ -65,3 +68,4 @@ clean:
 	rm -f *.o
 	rm -f img-search
 	rm -f pokedex-client
+	pkill img-search

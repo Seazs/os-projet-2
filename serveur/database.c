@@ -27,11 +27,14 @@ void init_images_path(){
    }
 
    while ((dir = readdir(d)) != NULL) {
+         if(strcmp(dir->d_name, "..") == 0 || strcmp(dir->d_name, ".") == 0){
+               continue;
+         }
         db_images_path.images_path = realloc(db_images_path.images_path, sizeof(char*) * (db_images_path.file_count + 1));
         db_images_path.images_path[db_images_path.file_count] = malloc(sizeof(char) * (strlen(dir->d_name) + 1));
         
         
-        strcpy(db_images_path.images_path[db_images_path.file_count], "./img/");
+        strcpy(db_images_path.images_path[db_images_path.file_count], "img/");
         strcat(db_images_path.images_path[db_images_path.file_count], dir->d_name);
         clean_str(dir->d_name);
         

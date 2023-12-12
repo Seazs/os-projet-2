@@ -6,8 +6,12 @@ int send_message(int socket, char *message);
 
 int send_image(int socket, char *image_path);
 
+int send_annonce(int socket, char *annonce);
+
 int receive_message(int socket, char *message);
 
-void clean_path(char *path);
+int receive_number(int socket, int *number);
+
+int receive_result(int socket, char *buffer, int *number);
 
 #endif

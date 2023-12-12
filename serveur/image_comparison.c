@@ -24,15 +24,15 @@ typedef struct {
 unsigned int compare_image(Image *image, char *db_image){
     uint64_t hash1, hash2;
     unsigned int size_raw_image = image->taille;
-    printf("size_raw_image : %d\n", size_raw_image);
-    printf("image reçue : %s\n", image->raw_image);
+    //printf("size_raw_image : %d\n", size_raw_image);
+    //printf("image reçue : %s\n", image->raw_image);
     if(!PHash(db_image, &hash2)){
-        printf("Erreur lors du calcul du hash de l'image de la base de données\n");
+        printf("Erreur lors du calcul du hash de l'image %s de la base de données\n", db_image);
         return 100;
     }
     if (!PHashRaw(image->raw_image, size_raw_image, &hash1)) {
          printf("Erreur lors du calcul du hash de l'image reçue\n");
-         return 1;
+         return 100;
     }
     // const char *image_path = "./image_recue.bmp";
     // if (!PHash(image_path, &hash1)) {
@@ -42,17 +42,17 @@ unsigned int compare_image(Image *image, char *db_image){
     
 
     unsigned int distance = DistancePHash(hash1, hash2);
-    printf("Distance entre les deux images : %d\n", distance);
+    //printf("Distance entre les deux images : %d\n", distance);
     return distance;
 
 }
 
 void *compare_images_thread(void *arg){
    Thread_data *thread_data = (Thread_data *)arg;
-   printf("Thread %d\n", thread_data->thread_id);
+   //printf("Thread %d\n", thread_data->thread_id);
 
     for(int i = thread_data->thread_id * thread_data->images_per_thread; i < (thread_data->thread_id + 1) * thread_data->images_per_thread; i++){
-        printf("Thread %d : %s\n", thread_data->thread_id, db_images_path.images_path[i]);
+        //printf("Thread %d : %s\n", thread_data->thread_id, db_images_path.images_path[i]);
         unsigned int distance = compare_image(thread_data->image, db_images_path.images_path[i]);
         if(distance < thread_data->best_distance){
             pthread_mutex_lock(&thread_data->mutex);
@@ -100,8 +100,10 @@ void handle_threads(Image *image, int client_socket){
             best_image_path = thread_data[i].best_image_path;
         }
     }
-    printf("Meilleure distance : %d\n", best_distance);
-    printf("Meilleure image : %s\n", best_image_path);
+    //printf("Client %d : Most similar image found: %s with a distance of %d.\n", client_socket, best_image_path, best_distance);
+    send_message(client_socket, best_image_path);
+    send_number(client_socket, best_distance);
+
 }
 
 

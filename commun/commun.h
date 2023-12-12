@@ -11,6 +11,8 @@ int _checked(int ret, char* calling_function);
 
 bool lire_exactement(int fd, char* buffer, int size);
 
+bool lire_int(int fd, int* value, u_int32_t size);
+
 void clean_str(char *path);
 
 

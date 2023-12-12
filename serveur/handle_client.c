@@ -8,6 +8,8 @@
 
 #include "handle_client.h"
 #include "image_comparison.h"
+#include "../commun/commun.h"
+#include "message_transmission.h"
 
 typedef struct {
     int socket;
@@ -23,9 +25,8 @@ void * handle_client(void* socket){
     handle_server_response(client_socket);
 
     close(client_socket);
-    free(socket);
-    free(client.socket);
-    
+    //free(socket);
+    return NULL;
 }
 
 
@@ -69,10 +70,10 @@ void handle_server_response(int serveur_socket) {
         else if(strcmp(buffer, "message") == 0){
             handle_message(serveur_socket, buffer);
         }
-        // else if(strcmp(buffer, "exit") == 0){
-        //     printf("Client déconnecté\n");
-        //     is_connected = false;
-        // }
+        else if(strcmp(buffer, "exit") == 0){
+             printf("Client déconnecté\n");
+             is_connected = false;
+        }
         else{
             printf("Erreur, pas de signal d'annonce reçu\n");
             is_connected = false;
@@ -83,6 +84,7 @@ void handle_server_response(int serveur_socket) {
 
 void accept_connections(int server_socket) {
     while(1) {
+        printf("Attente de connexion...\n");
         Client* client = (Client*)malloc(sizeof(Client));
         client->socket = accept(server_socket, NULL, NULL);
         if(client->socket < 0) {
@@ -95,5 +97,6 @@ void accept_connections(int server_socket) {
             perror("pthread_create");
             continue;
         }
+        printf("la\n");
     }
 }

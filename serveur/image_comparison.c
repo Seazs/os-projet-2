@@ -6,6 +6,7 @@
 #include "image_comparison.h"
 #include "imgdist.h"
 #include "database.h"
+#include "message_transmission.h"
 
 
 
@@ -16,9 +17,9 @@ typedef struct {
     int thread_id;
     Image *image;
     int images_per_thread;
-    int best_distance;
+    unsigned int best_distance;
     char *best_image_path;
-    pthread_mutex_t mutex
+    pthread_mutex_t mutex;
 } Thread_data;
 
 unsigned int compare_image(Image *image, char *db_image){
@@ -61,6 +62,7 @@ void *compare_images_thread(void *arg){
             pthread_mutex_unlock(&thread_data->mutex);
         }
     }
+    return NULL;
 }
 
 void handle_threads(Image *image, int client_socket){

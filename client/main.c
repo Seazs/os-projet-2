@@ -25,11 +25,10 @@ int main(int argc, char* argv[]) {
    char closest_image_path[999];
    int *distance = malloc(sizeof(int));
 
-   uint32_t longueur;
    //printf("Entrez un message ou un chemin d'image: \n");
    while (fgets(buffer, 1024, stdin) != NULL) {
       if(send_image(sock, buffer)){
-         printf("Image envoyée\n");
+         //printf("Image envoyée\n");
          receive_result(sock, closest_image_path, distance);
          printf("Most similar image found: '%s' with a distance of %d.\n", closest_image_path, *distance);
       }

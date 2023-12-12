@@ -19,6 +19,7 @@ bool lire_exactement(int fd, char* buffer, int size) {
    
    if (lu < 0) {
       perror("read()");
+      return false;
    }
    
    return lu > 0;

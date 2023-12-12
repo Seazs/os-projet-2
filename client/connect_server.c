@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <arpa/inet.h>
 
-#include "connect_server.h";
-#include "../commun/commun.h";
+#include "connect_server.h"
+#include "../commun/commun.h"
 
 
 void connect_to_server(int sock){

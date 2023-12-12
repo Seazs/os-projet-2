@@ -72,7 +72,7 @@ int send_image(int socket, char *image_path){
     free(raw_image);
 
     fclose(image_file);
-    printf("client: Image envoyée: %s\n", image_path);
+    //printf("client: Image envoyée: %s\n", image_path);
     return 1;
 }
 
@@ -84,7 +84,7 @@ int receive_message(int socket, char *buffer){
     if(!lire_exactement(socket, buffer, ntohl(longueur))){
         return 1;
     }
-    printf("client: Message reçu: %s\n", buffer);
+    //printf("client: Message reçu: %s\n", buffer);
     return 0;
 }
 

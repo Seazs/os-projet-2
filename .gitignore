@@ -3,3 +3,5 @@
 ./img-dist/*.o
 .vscode
 image_recue.bmp
+img-search
+pokedex-client

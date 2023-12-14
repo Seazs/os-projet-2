@@ -5,17 +5,22 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <stdatomic.h>
+
 
 #include "handle_client.h"
 #include "image_comparison.h"
 #include "../commun/commun.h"
 #include "message_transmission.h"
 
+#define MAX_CONNECTED_CLIENTS 2345 // nombre arbitraire
+
 typedef struct {
     int socket;
     
 } Client;
 
+atomic_int nb_clients = 0;
 
 
 void * handle_client(void* socket){
@@ -23,9 +28,10 @@ void * handle_client(void* socket){
     int client_socket = client.socket;
     
     handle_server_response(client_socket);
-
+    atomic_fetch_sub(&nb_clients, 1);
     close(client_socket);
-    //free(socket);
+    free(socket);
+    
     return NULL;
 }
 
@@ -33,12 +39,7 @@ void * handle_client(void* socket){
 void handle_image(int serveur_socket) {
     // image de max 20000 octets
     Image *image = (Image *)malloc(sizeof(Image));
-    printf("ouverture du fichier image_recue.bmp\n");
-    FILE *image_file = fopen("image_recue.bmp", "wb");
-    if(!receive_image(serveur_socket, image, image_file)){
-        printf("raw_image : %s\n", image->raw_image);
-        fclose(image_file);
-        //send_message(serveur_socket, "Image reçue avec succès");
+    if(!receive_image(serveur_socket, image)){
         handle_threads(image, serveur_socket);
         free(image);
     }
@@ -61,7 +62,7 @@ void handle_server_response(int serveur_socket) {
 
     while(is_connected) {
         receive_message(serveur_socket, buffer);
-        printf("Annonce Recu du cote serveur : %s\n", buffer);
+        //printf("Annonce Recu du cote serveur : %s\n", buffer);
         clean_str(buffer);
 
         if(strcmp(buffer, "img") == 0){
@@ -84,6 +85,11 @@ void handle_server_response(int serveur_socket) {
 
 void accept_connections(int server_socket) {
     while(1) {
+        if (nb_clients >= MAX_CONNECTED_CLIENTS) {
+            printf("Nombre maximum de connexions atteint\n");
+            sleep(2); // wait 2 seconds for clients to disconnect
+            continue;
+        }
         printf("Attente de connexion...\n");
         Client* client = (Client*)malloc(sizeof(Client));
         client->socket = accept(server_socket, NULL, NULL);
@@ -93,10 +99,13 @@ void accept_connections(int server_socket) {
         }
 
         pthread_t thread_id;
+        atomic_fetch_add(&nb_clients, 1);
         if(pthread_create(&thread_id, NULL, handle_client, client) != 0) {
             perror("pthread_create");
             continue;
         }
-        printf("la\n");
+        printf("Nouveau Client connecté\n");
+
     }
+
 }

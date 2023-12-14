@@ -97,7 +97,7 @@ echo "Lancement du serveur en arrière plan."
 $(cd ..; ./img-search ) &>/dev/null &
 
 echo "Attente de 10 sec avant le lancement des clients."
-for i in {10..1}; do
+for i in {2..1}; do
    echo -n -e "\rTemps restant : $i sec "
    sleep 1
 done

@@ -1,7 +1,7 @@
 CC=gcc
-OPT=-Wall -Wextra -std=gnu11 -O2
+OPT=-Wall -Wextra -std=gnu11 -O2 -Wpedantic
 LIB_SERV=-L ./img-dist/ -limg-dist -lm -lpthread
-LIB_CLIENT=
+LIB_CLIENT= -lpthread
 
 # Code du serveur (img-search)
 DIR_SERV=serveur
@@ -37,6 +37,9 @@ run: all
 
 tests: all
 	cd test && ./tests
+
+test_multiple_file_same_time: all
+	cd test && ./test_multiple_file_same_time
 
 libimg-dist.a:
 	(cd img-dist ; make)

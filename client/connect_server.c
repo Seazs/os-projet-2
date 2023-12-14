@@ -9,7 +9,7 @@
 #include "../commun/commun.h"
 
 
-void connect_to_server(int sock){
+void connect_to_server(int sock, char* server_ip){
     //printf("---------------------- Connecting to server ----------------------\n");
     struct sockaddr_in address;
 
@@ -17,7 +17,7 @@ void connect_to_server(int sock){
 
     address.sin_port = htons(PORT);
 
-    inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
+    inet_pton(AF_INET, server_ip, &address.sin_addr);
 
     checked(connect(sock, (struct sockaddr *)&address, sizeof(address)));
 

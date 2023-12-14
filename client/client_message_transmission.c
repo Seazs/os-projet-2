@@ -87,24 +87,3 @@ int receive_message(int socket, char *buffer){
     //printf("client: Message reçu: %s\n", buffer);
     return 0;
 }
-
-int receive_number(int socket, int *number){
-    uint32_t longueur;
-    if(!lire_exactement(socket, (char*)&longueur, sizeof(longueur))){
-        return 1;
-    }
-    if(!lire_int(socket, number, ntohl(longueur))){
-        return 1;
-    }
-    return 0;
-}
-
-int receive_result(int socket, char *buffer, int *number){
-    if(receive_message(socket, buffer)){
-        return 1;
-    }
-    if(receive_number(socket, number)){
-        return 1;
-    }
-    return 0;
-}

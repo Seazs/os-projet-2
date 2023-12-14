@@ -6,7 +6,7 @@
 
 #include "create_server.h"  // Inclusion du fichier d'en-tête pour la création du serveur
 #include "../commun/commun.h"  // Inclusion du fichier d'en-tête commun
-#define MAX_CONNEXION 1000  // Définition du nombre maximum de connexions
+#define MAX_WAITING_CONNEXION 10  // Définition du nombre maximum de connexions
 
 /**
  * Crée un socket et retourne le nouveau descripteur de socket.
@@ -28,5 +28,5 @@ void create_socket(int server_fd){
     // Liaison du socket à l'adresse et au port spécifiés
     checked(bind(server_fd, (struct sockaddr *)&address, sizeof(address)));
     // Mise en écoute du socket pour les connexions entrantes
-    checked(listen(server_fd, MAX_CONNEXION));
+    checked(listen(server_fd, MAX_WAITING_CONNEXION));
 }

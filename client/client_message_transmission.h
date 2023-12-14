@@ -10,8 +10,5 @@ int send_annonce(int socket, char *annonce);
 
 int receive_message(int socket, char *message);
 
-int receive_number(int socket, int *number);
 
-int receive_result(int socket, char *buffer, int *number);
-
-#endif
+#endif // _CLIENT_MESSAGE_TRANSMISSION_H_

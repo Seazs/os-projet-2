@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cat "./test-new-images.data" | ../pokedex-client

@@ -51,11 +51,16 @@ int send_image(int socket, char *image_path){
     // récupère la taille de l'image
     
     fseek(image_file, 0, SEEK_END);
-    long longueur = ftell(image_file);
+    uint32_t longueur = ftell(image_file);
     fseek(image_file, 0, SEEK_SET);
 
+    // printf("client: Taille de l'image: %d\n", longueur);
+    // printf("client: Envoi de l'image: %s\n", image_path);
+
+
+    uint32_t longueur_net = htonl(longueur);
     // envoie la taille de l'image
-    checked_wr(send(socket, &longueur, sizeof(longueur), 0));
+    checked_wr(send(socket, &longueur_net, sizeof(longueur_net), 0));
 
     
     char *raw_image = (char *)malloc(longueur);
@@ -67,10 +72,11 @@ int send_image(int socket, char *image_path){
 
     fread(raw_image, 1, longueur, image_file);
 
+    // printf("client: raw_image: %s\n", raw_image);
+
     // envoie l'image
     checked_wr(send(socket, raw_image, longueur, 0));
     free(raw_image);
-
     fclose(image_file);
     //printf("client: Image envoyée: %s\n", image_path);
     return 1;

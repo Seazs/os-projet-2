@@ -39,8 +39,6 @@ int main(int argc, char* argv[]) {
    int sock = checked(socket(AF_INET, SOCK_STREAM, 0));
    connect_to_server(sock, server_ip);
 
-
-
    //printf("Entrez un message ou un chemin d'image: \n");
    pthread_t thread_sending, thread_receiving;
 
@@ -50,8 +48,8 @@ int main(int argc, char* argv[]) {
    pthread_join(thread_sending, NULL);
    pthread_join(thread_receiving, NULL);
    
-   
    close(sock);
+   
    return 0;
 }
 

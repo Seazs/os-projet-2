@@ -90,6 +90,45 @@ function test_invalid_path() {
    test_num+=1
 }
 
+function debug_test_new_images_all_in_one() {
+   echo -e "\n === Débogage du test de plusieurs images pour un client ===\n"
+   
+   expected_result=""
+
+   # Rediriger la sortie standard vers un fichier temporaire
+   temp_output_file=$(mktemp)
+   result="$(
+      count_images=( $(wc -l test-new-images.data) );
+      while read -r line; do
+         values=($line)
+         echo "img/${values[0]}.bmp";
+      done < test-new-images.data | ../pokedex-client > "$temp_output_file" 2>&1 | tail -n $count_images
+      )"
+
+   expected_result="$(while read -r line; do
+         values=($line)
+         echo "Most similar image found: 'img/${values[1]}.bmp' with a distance of ${values[2]}."
+      done < test-new-images.data
+      )"
+   
+   echo -n "Test de débogage ... "
+   
+   if [ ! "$result" = "$expected_result" ]; then
+      echo -e '\x1B[0;31mÉchec\x1B[0m'
+      echo -e "Résultat obtenu :\n\t\x1B[0;33m$result\x1B[0m\nRésultat attendu :\n\t\x1B[0;33m$expected_result\x1B[0m"
+      
+      # Imprimer la sortie du programme pour déboguer
+      cat "$temp_output_file"
+   else
+      echo -e '\x1B[0;32mSuccès\x1B[0m'
+      test_success+=1
+   fi
+
+   # Supprimer le fichier temporaire après utilisation
+   rm -f "$temp_output_file"
+   test_num+=1
+}
+
 echo "Fin des img-search en cours."
 killall img-search 2>/dev/null
 
@@ -108,6 +147,7 @@ test_new_images
 
 test_new_images_all_in_one
 
+#debug_test_new_images_all_in_one
 echo "Fin des img-search en cours."
 killall img-search
 

@@ -21,9 +21,11 @@ int send_message(int socket, char *message){
 */
 int receive_image(int socket, Image* image){
     // récupère la taille de l'image
-    long longueur;
+    uint32_t longueur;
     recv(socket, &longueur, sizeof(longueur), 0);
-    if (longueur == 0) {
+    longueur = ntohl(longueur);
+    //printf("Reception d'une image de taille %ld\n", longueur);
+    if (longueur < 0) {
         printf("Erreur lors de la réception de la taille de l'image\n");
         return 1;
     }
@@ -31,10 +33,14 @@ int receive_image(int socket, Image* image){
         printf("Erreur : image trop grande, veuillez a rentrer une image < 20ko\n");
         return 1;
     }
+    
+    
     image->taille = longueur;
     image->raw_image = (char *)malloc(longueur);
+    
     // reçoit l'image
     recv(socket, image->raw_image, longueur, 0);
+    //printf("raw_image: %s\n", image->raw_image);
     return 0;
 }
 

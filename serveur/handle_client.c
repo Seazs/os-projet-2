@@ -38,6 +38,7 @@ void * handle_client(void* socket){
 
 void handle_image(int serveur_socket) {
     // image de max 20000 octets
+    //printf("Reception d'une image\n");
     Image *image = (Image *)malloc(sizeof(Image));
     if(!receive_image(serveur_socket, image)){
         handle_threads(image, serveur_socket);
@@ -45,6 +46,7 @@ void handle_image(int serveur_socket) {
     }
     else{
         printf("Erreur lors de la réception de l'image\n");
+        free(image);
     }
     
 }
@@ -57,14 +59,13 @@ void handle_message(int serveur_socket, char* buffer) {
 }
 
 void handle_server_response(int serveur_socket) {
-    char buffer[1024];
+    char buffer[10000];
     bool is_connected = true;
 
     while(is_connected) {
         receive_message(serveur_socket, buffer);
-        //printf("Annonce Recu du cote serveur : %s\n", buffer);
         clean_str(buffer);
-
+        //printf("Annonce Recu du cote serveur : %s\n", buffer);
         if(strcmp(buffer, "img") == 0){
             handle_image(serveur_socket);
         }
@@ -79,7 +80,8 @@ void handle_server_response(int serveur_socket) {
             printf("Erreur, pas de signal d'annonce reçu\n");
             is_connected = false;
         }
-        // wait 5 seconds
+        
+
     }
 }
 

@@ -103,6 +103,7 @@ void handle_threads(Image *image, int client_socket){
     }
     char *result = (char *)malloc(100);
     sprintf(result, "Most similar image found: '%s' with a distance of %d.", best_image_path, best_distance);
+    printf("Most similar image found: '%s' with a distance of %d.\n", best_image_path, best_distance);
     send_message(client_socket, result);
 
     free(result);

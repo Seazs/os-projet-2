@@ -21,38 +21,11 @@ void ExempleSignaux(void);
 
 
 
-int main(int argc, char* argv[]) {
-   
-   //imprime les chemin des images
-   // for(int i = 0; i < db_images_path.file_count; i++){
-   //    printf("%s\n", db_images_path.images_path[i]);
-   // }
-
-   // Permet que write() retourne 0 en cas de réception
+int main() {
    // du signal SIGPIPE.
    signal(SIGPIPE, SIG_IGN);
    
-   // /// Exemple d'utilisation de la biliothèque img-dist ///
-   // uint64_t hash1, hash2;
-   
-   // // Calcule du code de hachage perceptif de l'image "img/1.bmp" et
-   // // conservation de celui-ci dans hash1.
-   // if (!PHash("img/1.bmp", &hash1))
-   //    return 1; // Échec dans le chargement de l'image (message sur stderr automatique)
-   
-   // // Idem pour "img/2.bmp".
-   // if (!PHash("img/2.bmp", &hash2))
-   //    return 1;
-   
-   // // Calculer la distance entre hash1 et hash2
-   // unsigned int distance = DistancePHash(hash1, hash2);
-   
-   // // Afficher la distance entre les deux images (valeur de retour d'img-dist dans le projet 1
-   // // quand il n'y avait pas d'erreur).
-   // printf("Distance entre les images 'img/1.bmp' et 'img/2.bmp' : %d\n", distance);
-   
-   // /// Fin de l'exemple d'utilisation de la biliothèque img-dist ///
-   
+
    // /// Exemple gestion de signaux (cf Annexe de l'énoncé & corrigé du projet 1) ///
    
    //ExempleSignaux();

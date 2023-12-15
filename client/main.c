@@ -5,8 +5,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <signal.h>
+
 #include <pthread.h>
+#include <signal.h>
+
 
 #include "../commun/commun.h"
 #include "../serveur/imgdist.h"
@@ -15,6 +17,8 @@
 #include "async_client.h"
 
 #define DEFAULT_SERVER_IP "127.0.0.1"
+
+void SignalHandler(int signal);
 
 
 int main(int argc, char* argv[]) {
@@ -32,9 +36,15 @@ int main(int argc, char* argv[]) {
       server_ip = DEFAULT_SERVER_IP;
    }
 
-   // attendre que le serveur soit prêt
-   //sleep(1);
-   signal(SIGPIPE, SIG_IGN);
+   struct sigaction action ;
+
+   action.sa_handler = SignalHandler;
+   sigemptyset(&action.sa_mask);
+   
+   if (sigaction(SIGINT, &action, NULL) == -1) {
+      perror("sigaction()");
+      return 1;
+   }
 
    int sock = checked(socket(AF_INET, SOCK_STREAM, 0));
    connect_to_server(sock, server_ip);
@@ -53,4 +63,8 @@ int main(int argc, char* argv[]) {
    return 0;
 }
 
+
+void SignalHandler(int signal) {
+   signal_received = 1;
+}
 

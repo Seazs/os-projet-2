@@ -3,18 +3,31 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <errno.h>
 
 #include "../commun/commun.h"
 #include "client_message_transmission.h"
 
+
 int send_annonce(int socket, char *annonce){
     // envoie "annonce" au serveur afin d'annoncer que le client souhaite envoyer un message
+    errno = 0;
     uint32_t longueur;
     longueur = strlen(annonce) + 1;
     longueur = htonl(longueur);
     checked_wr(write(socket, &longueur, sizeof(longueur)));
+    if(errno != 0){
+        perror("write()");
+        return 1;
+    }
+    printf("client Annonce envoyée : %s\n", annonce);
     longueur = ntohl(longueur);
-    checked_wr(write(socket, annonce, longueur));
+    int ret;
+    ret = write(socket, annonce, longueur);
+    if(errno != 0){
+        perror("write()");
+        return 1;
+    }
     return 0;
 }
 
@@ -37,16 +50,19 @@ int send_image(int socket, char *image_path){
     
     // vérifie que l'extension du fichier est bien .bmp
     if (strstr(image_path, ".bmp") == NULL){
-        return 0;
+        return 1;
     }
     clean_str(image_path);
     FILE *image_file = fopen(image_path, "rb");
     if(image_file == NULL){
         perror("fopen()");
-        return 0;
+        return 1;
     }
     // envoie "img" au serveur afin d'annoncer que le client souhaite envoyer une image
-    send_annonce(socket, "img");
+    if(send_annonce(socket, "img")){
+        fclose(image_file);
+        return 1;
+    }
     
     // récupère la taille de l'image
     
@@ -67,7 +83,7 @@ int send_image(int socket, char *image_path){
     if(raw_image == NULL){
         perror("malloc()");
         fclose(image_file);
-        return 0;
+        return 1;
     }
 
     fread(raw_image, 1, longueur, image_file);
@@ -79,7 +95,7 @@ int send_image(int socket, char *image_path){
     free(raw_image);
     fclose(image_file);
     //printf("client: Image envoyée: %s\n", image_path);
-    return 1;
+    return 0;
 }
 
 int receive_message(int socket, char *buffer){

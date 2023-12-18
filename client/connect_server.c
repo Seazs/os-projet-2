@@ -11,6 +11,7 @@
 
 void connect_to_server(int sock, char* server_ip){
     //printf("---------------------- Connecting to server ----------------------\n");
+    
     struct sockaddr_in address;
 
     address.sin_family = AF_INET;

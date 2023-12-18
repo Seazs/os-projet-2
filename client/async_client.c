@@ -38,7 +38,6 @@ void * sending_thread(void * arg){
     int sock = *(int*)arg;
 
     char buffer[MAX_IMAGE_PATH_LENGTH + 1];
-    unsigned int i = 0;
     read_state_t state;
 
     do {
@@ -61,7 +60,6 @@ void * sending_thread(void * arg){
             while(images_sent - images_received > 4){
                 usleep(300000);
             }
-            i = 0;
             break;
         case READ_INTERRUPTED:
             printf("Reading interrupted.\n");
@@ -81,6 +79,7 @@ void * sending_thread(void * arg){
         }
         
     } while (state != READ_EOF);
+    
     if (sigpipe_receive == 1){
         printf("Connection closed by the server.\n");
     }

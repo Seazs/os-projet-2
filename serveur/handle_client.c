@@ -6,6 +6,8 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <stdatomic.h>
+#include <unistd.h>
+#include <signal.h>
 
 
 #include "handle_client.h"
@@ -15,23 +17,44 @@
 
 #define MAX_CONNECTED_CLIENTS 2345 // nombre arbitraire
 
-typedef struct {
-    int socket;
-    
-} Client;
+
 
 atomic_int nb_clients = 0;
+pthread_t threads[MAX_CONNECTED_CLIENTS];
+Client clients[MAX_CONNECTED_CLIENTS];
 
 
 void * handle_client(void* socket){
+    // ignorer SIGINT
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    if(pthread_sigmask(SIG_BLOCK, &set, NULL) != 0) {
+        perror("pthread_sigmask");
+        return NULL;
+    }
+
+    // gérer SIGPIPE et SIGUSR1(envoyé par le main_thread lors de la réception de SIGINT)
+    struct sigaction action;
+    action.sa_handler = client_thread_signal_handler;
+    sigemptyset(&action.sa_mask);
+    if(sigaction(SIGUSR1, &action, NULL) != 0) {
+        perror("sigaction()");
+        return NULL;
+    }
+    if(sigaction(SIGPIPE, &action, NULL) != 0) {
+        perror("sigaction()");
+        return NULL;
+    }
+
     Client client = *(Client*)socket;
-    int client_socket = client.socket;
     
-    handle_server_response(client_socket);
+    
+    handle_server_response(client);
     atomic_fetch_sub(&nb_clients, 1);
-    close(client_socket);
+    close(client.socket);
+    threads[nb_clients] = 0;
     free(socket);
-    
     return NULL;
 }
 
@@ -58,11 +81,12 @@ void handle_message(int serveur_socket, char* buffer) {
     }
 }
 
-void handle_server_response(int serveur_socket) {
+void handle_server_response(Client client) {
+    int serveur_socket = client.socket;
     char buffer[10000];
-    bool is_connected = true;
 
-    while(is_connected) {
+
+    while(client.is_connected) {
         receive_message(serveur_socket, buffer);
         clean_str(buffer);
         //printf("Annonce Recu du cote serveur : %s\n", buffer);
@@ -74,11 +98,11 @@ void handle_server_response(int serveur_socket) {
         }
         else if(strcmp(buffer, "exit") == 0){
              printf("Client déconnecté\n");
-             is_connected = false;
+             client.is_connected = false;
         }
         else{
             printf("Erreur, pas de signal d'annonce reçu\n");
-            is_connected = false;
+            client.is_connected = false;
         }
         
 
@@ -86,6 +110,18 @@ void handle_server_response(int serveur_socket) {
 }
 
 void accept_connections(int server_socket) {
+
+    signal(SIGINT, main_signal_handler); // pas d'appel blocant dans le main_thread donc pas de pthread_sigmask
+
+    // ignorer SIGPIPE
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGPIPE);
+    if(pthread_sigmask(SIG_BLOCK, &set, NULL) != 0) {
+        perror("pthread_sigmask");
+        return;
+    }
+
     while(1) {
         if (nb_clients >= MAX_CONNECTED_CLIENTS) {
             printf("Nombre maximum de connexions atteint\n");
@@ -95,6 +131,7 @@ void accept_connections(int server_socket) {
         printf("Attente de connexion...\n");
         Client* client = (Client*)malloc(sizeof(Client));
         client->socket = accept(server_socket, NULL, NULL);
+        client->is_connected = true;
         if(client->socket < 0) {
             perror("accept");
             continue;
@@ -104,10 +141,52 @@ void accept_connections(int server_socket) {
         atomic_fetch_add(&nb_clients, 1);
         if(pthread_create(&thread_id, NULL, handle_client, client) != 0) {
             perror("pthread_create");
+            atomic_fetch_sub(&nb_clients, 1);
             continue;
         }
+
+        threads[nb_clients - 1] = thread_id;
         printf("Nouveau Client connecté\n");
 
     }
 
+}
+
+void main_signal_handler(int signal){
+   switch (signal) {
+   case SIGINT:
+      printf("main : SIGINT\n");
+      for (int i = 0; i < MAX_CONNECTED_CLIENTS; i++) {
+         if (threads[i] != 0) {
+            pthread_kill(threads[i], SIGUSR1);
+         }
+      }
+      break;
+   case SIGPIPE:
+      printf("main : SIGPIPE\n");
+      break;
+   case SIGUSR1:
+      printf("main : SIGUSR1\n");
+      break;
+   default:
+      printf("Signal inconnu\n");
+      break;
+   }
+}
+
+void client_thread_signal_handler(int signal){
+   switch (signal) {
+   case SIGINT:
+      printf("client : SIGINT\n");
+      break;
+   case SIGPIPE:
+      printf("client : SIGPIPE\n");
+      break;
+   case SIGUSR1:
+      printf("client : SIGUSR1\n");
+      break;
+   default:
+      printf("Signal inconnu\n");
+      break;
+   }
 }

@@ -36,8 +36,9 @@ void * sending_thread(void * arg){
     
 
     int sock = *(int*)arg;
-
+    
     char buffer[MAX_IMAGE_PATH_LENGTH + 1];
+    unsigned int i = 0;
     read_state_t state;
 
     do {
@@ -51,7 +52,7 @@ void * sending_thread(void * arg){
         case READ_EOF:
             break;
         case READ_OK:
-            if(!send_image(sock, buffer)){
+            if(send_image(sock, buffer)){
                 printf("No similar image found (no comparison could be performed successfully).\n");
             }
             else{
@@ -60,6 +61,7 @@ void * sending_thread(void * arg){
             while(images_sent - images_received > 4){
                 usleep(300000);
             }
+            i = 0;
             break;
         case READ_INTERRUPTED:
             printf("Reading interrupted.\n");

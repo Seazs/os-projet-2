@@ -20,7 +20,6 @@ int send_annonce(int socket, char *annonce){
         perror("write()");
         return 1;
     }
-    printf("client Annonce envoyée : %s\n", annonce);
     longueur = ntohl(longueur);
     int ret;
     ret = write(socket, annonce, longueur);

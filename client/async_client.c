@@ -83,10 +83,10 @@ void * sending_thread(void * arg){
     } while (state != READ_EOF);
     
     if (sigpipe_receive == 1){
-        printf("Connection closed by the server.\n");
+        //printf("Connection closed by the server.\n");
     }
     else{
-        printf("Connection closed.\n");
+        //printf("Connection closed.\n");
         send_annonce(sock, "exit");
     }
     // faut pas envoyer si c'est le serveur qui a fermé la connexion 

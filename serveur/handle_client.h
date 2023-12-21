@@ -1,6 +1,7 @@
 #ifndef _HANDLE_CLIENT_H_
 #define _HANDLE_CLIENT_H_
 
+#include <stdbool.h>
 typedef struct {
     unsigned int taille;
     char *raw_image;

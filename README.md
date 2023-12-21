@@ -39,3 +39,9 @@ To run the program with gnome-terminal :
 make launch
 
 ```
+
+To lunch the test :
+```
+make tests
+
+```

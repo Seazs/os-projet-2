@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
-
+#include <stdbool.h>
 #include "image_comparison.h"
 #include "imgdist.h"
 #include "database.h"

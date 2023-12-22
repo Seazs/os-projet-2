@@ -77,7 +77,7 @@ int receive_message(int socket, char *buffer){
     // Read the message
     if(!lire_exactement(socket, buffer, ntohl(longueur))){
         if (errno = EINTR) {
-            return READ_INTERRUPTED;
+            return 2;
         }
         return 1;
     }

@@ -80,12 +80,6 @@ void handle_image(int serveur_socket) {
     }
 }
 
-void handle_message(int serveur_socket, char* buffer) {
-    if(!receive_message(serveur_socket, buffer)){
-        printf("Recu du cote serveur : %s\n", buffer);
-        send_message(serveur_socket, buffer);
-    }
-}
 
 void handle_server_response(Client client) {
     int serveur_socket = client.socket;
@@ -109,9 +103,6 @@ void handle_server_response(Client client) {
         //printf("Annonce Recu du cote serveur : %s\n", buffer);
         if(strcmp(buffer, "img") == 0){
             handle_image(serveur_socket);
-        }
-        else if(strcmp(buffer, "message") == 0){
-            handle_message(serveur_socket, buffer);
         }
         else if(strcmp(buffer, "exit") == 0){
              printf("Client déconnecté\n");

@@ -8,6 +8,7 @@
 #include <stdatomic.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 
 
 #include "handle_client.h"
@@ -18,13 +19,13 @@
 #define MAX_CONNECTED_CLIENTS 2345 // nombre arbitraire
 
 
-
+volatile sig_atomic_t signalRecu = 0;
 atomic_int nb_clients = 0;
 pthread_t threads[MAX_CONNECTED_CLIENTS];
 Client clients[MAX_CONNECTED_CLIENTS];
 
 
-void * handle_client(void* socket){
+void * handle_client(void* arg_client){
     // ignorer SIGINT
     sigset_t set;
     sigemptyset(&set);
@@ -47,14 +48,14 @@ void * handle_client(void* socket){
         return NULL;
     }
 
-    Client client = *(Client*)socket;
+    Client client = *(Client*)arg_client;
     
     
     handle_server_response(client);
     atomic_fetch_sub(&nb_clients, 1);
     close(client.socket);
-    threads[nb_clients] = 0;
-    free(socket);
+    threads[nb_clients-1] = 0;
+    free(arg_client);    
     return NULL;
 }
 
@@ -111,8 +112,13 @@ void handle_server_response(Client client) {
 
 void accept_connections(int server_socket) {
 
-    signal(SIGINT, main_signal_handler); // pas d'appel blocant dans le main_thread donc pas de pthread_sigmask
-
+    struct sigaction action;
+    action.sa_handler = main_signal_handler;
+    sigemptyset(&action.sa_mask);
+    if(sigaction(SIGINT, &action, NULL) != 0) {
+        perror("sigaction()");
+        return;
+    }
     // ignorer SIGPIPE
     sigset_t set;
     sigemptyset(&set);
@@ -122,15 +128,22 @@ void accept_connections(int server_socket) {
         return;
     }
 
-    while(1) {
+    while(!signalRecu) {
         if (nb_clients >= MAX_CONNECTED_CLIENTS) {
             printf("Nombre maximum de connexions atteint\n");
             sleep(2); // wait 2 seconds for clients to disconnect
             continue;
         }
         printf("Attente de connexion...\n");
+        int client_socket;
+        if((client_socket = accept(server_socket, NULL, NULL)) < 0) {
+            perror("accept");
+            continue;
+        }
+        printf("Connexion acceptée\n");
         Client* client = (Client*)malloc(sizeof(Client));
-        client->socket = accept(server_socket, NULL, NULL);
+        printf("Client connecté\n");
+        client->socket = client_socket;
         client->is_connected = true;
         if(client->socket < 0) {
             perror("accept");
@@ -138,6 +151,7 @@ void accept_connections(int server_socket) {
         }
 
         pthread_t thread_id;
+        threads[nb_clients] = thread_id;
         atomic_fetch_add(&nb_clients, 1);
         if(pthread_create(&thread_id, NULL, handle_client, client) != 0) {
             perror("pthread_create");
@@ -145,10 +159,11 @@ void accept_connections(int server_socket) {
             continue;
         }
 
-        threads[nb_clients - 1] = thread_id;
+        
         printf("Nouveau Client connecté\n");
-
     }
+
+    close(server_socket);
 
 }
 
@@ -161,6 +176,7 @@ void main_signal_handler(int signal){
             pthread_kill(threads[i], SIGUSR1);
          }
       }
+      signalRecu = 1;
       break;
    case SIGPIPE:
       printf("main : SIGPIPE\n");

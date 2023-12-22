@@ -12,7 +12,7 @@ typedef struct {
     bool is_connected;
     pthread_t thread_id;
 } Client;
-void * handle_client(void* socket);
+void * handle_client(void* arg_client);
 
 
 void handle_image(int serveur_socket);

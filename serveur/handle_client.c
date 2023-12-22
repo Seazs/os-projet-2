@@ -27,30 +27,11 @@ Client *clients[MAX_CONNECTED_CLIENTS]; // Array to store client information
  * @return NULL
  */
 void *handle_client(void *arg_client) {
-    // Ignore SIGINT signal
-    sigset_t set;
-    sigemptyset(&set);
-    sigaddset(&set, SIGINT);
-    if (pthread_sigmask(SIG_BLOCK, &set, NULL) != 0) {
-        perror("pthread_sigmask");
-        return NULL;
-    }
-
-    // Handle SIGPIPE and SIGUSR1 signals (sent by the main thread when receiving SIGINT)
-    struct sigaction action;
-    action.sa_handler = client_thread_signal_handler;
-
-    sigemptyset(&action.sa_mask);
-    if (sigaction(SIGUSR1, &action, NULL) != 0) {
-        perror("sigaction()");
-        return NULL;
-    }
-    if (sigaction(SIGPIPE, &action, NULL) != 0) {
-        perror("sigaction()");
-        return NULL;
-    }
+    set_client_signal_handler(); // Set the signal handler for the client thread
 
     Client *client = (Client *)arg_client;
+
+    pthread_setspecific(pthread_self(), client); // Set the client struct as thread-specific data
 
     handle_server_response(client); // Perform operations to handle the client connection
     
@@ -180,6 +161,7 @@ void accept_connections(int server_socket) {
 
         // Set the client's thread ID and client number
         client->thread_id = thread_id;
+        printf("thread_id : %ld\n", thread_id);
         client->client_number = nb_clients;
         client->has_to_terminate = false;
         clients[nb_clients] = client;
@@ -197,6 +179,43 @@ void accept_connections(int server_socket) {
         }
     }
 
+}
+
+
+/**
+ * Sets the signal handler for the client threads.
+ * @return 0 if successful, or 1 if an error occurred.
+ */
+int set_client_signal_handler(){
+    // Ignore SIGINT signal
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    if (pthread_sigmask(SIG_BLOCK, &set, NULL) != 0) {
+        perror("pthread_sigmask");
+        return NULL;
+    }
+    // unblock SIGPIPE signal
+    sigemptyset(&set);
+    sigaddset(&set, SIGPIPE);
+    if (pthread_sigmask(SIG_UNBLOCK, &set, NULL) != 0) {
+        perror("pthread_sigmask");
+        return NULL;
+    }
+
+    // Handle SIGPIPE and SIGUSR1 signals (sent by the main thread when receiving SIGINT)
+    struct sigaction action;
+    action.sa_handler = client_thread_signal_handler;
+
+    sigemptyset(&action.sa_mask);
+    if (sigaction(SIGUSR1, &action, NULL) != 0) {
+        perror("sigaction()");
+        return NULL;
+    }
+    if (sigaction(SIGPIPE, &action, NULL) != 0) {
+        perror("sigaction()");
+        return NULL;
+    }
 }
 
 /**
@@ -231,23 +250,23 @@ int set_main_signal_handler() {
 void main_signal_handler(int signal){
    switch (signal) {
    case SIGINT:
-      // If the signal is SIGINT (Ctrl+C), print a message, set all clients to terminate,
-      // send SIGUSR1 to all client threads, and set signalRecu to 1
-      printf("main : SIGINT\n");
-      printf("Fermeture du serveur\n");
-      for (int i = 0; i < MAX_CONNECTED_CLIENTS; i++) {
-        if (threads[i] != 0) {
-        clients[i]->has_to_terminate = true;
-        clients[i]->is_connected = false;
-        pthread_kill(threads[i], SIGUSR1);
+        // If the signal is SIGINT (Ctrl+C), print a message, set all clients to terminate,
+        // send SIGUSR1 to all client threads, and set signalRecu to 1
+        printf("main : SIGINT\n");
+        printf("Fermeture du serveur\n");
+        for (int i = 0; i < MAX_CONNECTED_CLIENTS; i++) {
+            if (threads[i] != 0) {
+                clients[i]->has_to_terminate = true;
+                clients[i]->is_connected = false;
+                pthread_kill(threads[i], SIGUSR1);
+            }
         }
-      }
-      signalRecu = 1;
-      break;
+        signalRecu = 1;
+        break;
    default:
-      // If the signal is unknown, print a message
-      printf("Signal inconnu\n");
-      break;
+        // If the signal is unknown, print a message
+        printf("Signal inconnu\n");
+        break;
    }
 }
 
@@ -258,21 +277,25 @@ void main_signal_handler(int signal){
 void client_thread_signal_handler(int signal){
    switch (signal) {
    case SIGINT:
-      // If the signal is SIGINT (Ctrl+C), print a message
-      printf("client : SIGINT\n");
-      break;
+        // If the signal is SIGINT (Ctrl+C), print a message
+        printf("client : SIGINT\n");
+        break;
    case SIGPIPE:
-      // If the signal is SIGPIPE (broken pipe), print a message
-      printf("client : SIGPIPE\n");
-      break;
+        // If the signal is SIGPIPE (broken pipe), print a message
+        printf("client : SIGPIPE\n");
+        Client *client = pthread_getspecific(pthread_self()); // Get the client struct from thread-specific data
+        printf("Client %d disconnected\n", client->client_number);
+        client->is_connected = false;
+        client->has_to_terminate = true;
+        break;  
    case SIGUSR1:
-      // If the signal is SIGUSR1 (user-defined signal), print a message
-      printf("client : SIGUSR1\n");
-      break;
+        // If the signal is SIGUSR1 (user-defined signal), print a message
+        printf("client : SIGUSR1\n");
+        break;
    default:
-      // If the signal is unknown, print a message
-      printf("Signal inconnu\n");
-      break;
+        // If the signal is unknown, print a message
+        printf("Signal inconnu\n");
+        break;
    }
 }
 

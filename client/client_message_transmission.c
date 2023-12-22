@@ -22,11 +22,15 @@ int send_annonce(int socket, char *annonce){
     }
     longueur = ntohl(longueur);
     int ret;
-    ret = write(socket, annonce, longueur);
-    if(errno != 0){
+    if((ret = write(socket, annonce, longueur)) < 0){
+        if(errno != 0){
+            perror("write()");
+            return 1;
+        }
         perror("write()");
         return 1;
     }
+    
     return 0;
 }
 

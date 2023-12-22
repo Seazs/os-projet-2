@@ -20,11 +20,25 @@ int send_message(int socket, char *message){
     // Convert the length to network byte order
     longueur = htonl(longueur);
     // Write the length to the socket
-    checked_wr(write(socket, &longueur, sizeof(longueur)));
+    if (write(socket, &longueur, sizeof(longueur)) < 0){
+        if(errno != 0){
+            perror("write()");
+            return 2;
+        }
+        perror("write()");
+        return 1;
+    }
     // Convert the length back to host byte order
     longueur = ntohl(longueur);
     // Write the message to the socket
-    checked_wr(write(socket, message, longueur));
+    if((write(socket, message, longueur))< 0){
+        if(errno != 0){
+            perror("write()");
+            return 2;
+        }
+        perror("write()");
+        return 1;
+    }
     return 0;
 }
 
@@ -37,14 +51,13 @@ int send_message(int socket, char *message){
 int receive_image(int socket, Image* image){
     // Receive the size of the image
     uint32_t longueur;
-    recv(socket, &longueur, sizeof(longueur), 0);
-    // Convert the size to host byte order
-    longueur = ntohl(longueur);
-    if (longueur < 0) {
+    if(recv(socket, &longueur, sizeof(longueur), 0) < 0){
         printf("Erreur lors de la réception de la taille de l'image\n");
         return 1;
     }
-    else if (longueur > 20000) {
+    // Convert the size to host byte order
+    longueur = ntohl(longueur);
+    if (longueur > 20000) {
         printf("Erreur : image trop grande, veuillez a rentrer une image < 20ko\n");
         return 1;
     }
@@ -54,7 +67,10 @@ int receive_image(int socket, Image* image){
     image->raw_image = (char *)malloc(longueur);
     
     // Receive the image data
-    recv(socket, image->raw_image, longueur, 0);
+    if(recv(socket, image->raw_image, longueur, 0) < 0){
+        printf("Erreur lors de la réception de l'image\n");
+        return 1;
+    }
     return 0;
 }
 

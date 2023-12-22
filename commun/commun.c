@@ -25,14 +25,6 @@ bool lire_exactement(int fd, char* buffer, int size) {
    return lu > 0;
 }
 
-bool lire_int(int fd, int* value, u_int32_t size) {
-    char buffer[sizeof(int)];
-    bool result = lire_exactement(fd, buffer, size);
-    if (result) {
-        memcpy(value, buffer, sizeof(int));
-    }
-    return result;
-}
 
 void clean_str(char *path){
     char *cleaned_path = malloc(strlen(path) + 1);

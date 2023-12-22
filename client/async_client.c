@@ -65,7 +65,6 @@ void * sending_thread(void * arg){
             break;
         case READ_INTERRUPTED:
             printf("Reading interrupted.\n");
-            sleep(3);
             break;
         case READ_ERROR:
             fprintf(stderr, "An error occured while reading the input.\n");

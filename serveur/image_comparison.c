@@ -54,12 +54,13 @@ void *compare_images_thread(void *arg){
     for(int i = start_index; i < end_index; i++){
         //printf("Thread %d : %s\n", thread_data->thread_id, db_images_path.images_path[i]);
         unsigned int distance = compare_image(thread_data->image, db_images_path.images_path[i]);
+        //pthread_mutex_lock(&thread_data->mutex);
         if(distance < thread_data->best_distance){
-            pthread_mutex_lock(&thread_data->mutex);
             thread_data->best_distance = distance;
             thread_data->best_image_path = db_images_path.images_path[i];
-            pthread_mutex_unlock(&thread_data->mutex);
         }
+        //pthread_mutex_unlock(&thread_data->mutex);
+
     }
     return NULL;
 }
@@ -102,8 +103,13 @@ void handle_threads(Image *image, int client_socket){
         }
     }
     char *result = (char *)malloc(100);
-    sprintf(result, "Most similar image found: '%s' with a distance of %d.", best_image_path, best_distance);
-    printf("Most similar image found: '%s' with a distance of %d.\n", best_image_path, best_distance);
+    if(best_image_path == NULL){
+        sprintf(result, "No similar image found (no comparison could be performed successfully).\n");
+        printf("No similar image found.\n");
+    }else{
+        sprintf(result, "Most similar image found: '%s' with a distance of %d.", best_image_path, best_distance);
+        printf("Most similar image found: '%s' with a distance of %d.\n", best_image_path, best_distance);
+    }
     send_message(client_socket, result);
 
     free(result);

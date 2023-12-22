@@ -71,5 +71,7 @@ clean:
 	rm -f *.o
 	rm -f img-search
 	rm -f pokedex-client
-	pkill img-search
-	pkill pokedex-client
+
+kill:
+	killall img-search
+	killall pokedex-client

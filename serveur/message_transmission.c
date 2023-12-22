@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <errno.h>
 
 #include "../commun/commun.h"
 #include "message_transmission.h"
@@ -67,10 +68,17 @@ int receive_message(int socket, char *buffer){
     uint32_t longueur;
     // Read the length of the message
     if(!lire_exactement(socket, (char*)&longueur, sizeof(longueur))){
+        if (errno = EINTR) {
+            return 2;
+        }
         return 1;
     }
+    
     // Read the message
     if(!lire_exactement(socket, buffer, ntohl(longueur))){
+        if (errno = EINTR) {
+            return READ_INTERRUPTED;
+        }
         return 1;
     }
     // Clean the message

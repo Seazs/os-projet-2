@@ -10,6 +10,8 @@ typedef struct {
 typedef struct {
     int socket;
     bool is_connected;
+    bool has_to_terminate;
+    int client_number;
     pthread_t thread_id;
 } Client;
 void * handle_client(void* arg_client);
@@ -21,7 +23,11 @@ void handle_message(int serveur_socket, char* buffer);
 
 void handle_server_response(Client client);
 
+int accept_new_connection(int server_socket);
+
 void accept_connections(int server_socket);
+
+int set_main_signal_handler();
 
 void main_signal_handler(int signal);
 

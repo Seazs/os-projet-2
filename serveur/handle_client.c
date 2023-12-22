@@ -5,7 +5,6 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include <stdatomic.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
@@ -52,7 +51,7 @@ void *handle_client(void *arg_client) {
     }
 
     Client *client = (Client *)arg_client;
-    
+
     handle_server_response(client); // Perform operations to handle the client connection
     
     
@@ -68,11 +67,11 @@ void *handle_client(void *arg_client) {
  * Function to handle an image received from the server.
  * @param serveur_socket The socket connected to the server.
  */
-void handle_image(int serveur_socket) {
+void handle_image(Client *client) {
     // Allocate memory for the image (max 20000 bytes)
     Image *image = (Image *)malloc(sizeof(Image));
-    if (!receive_image(serveur_socket, image)) {
-        handle_threads(image, serveur_socket); // Perform operations to handle the received image
+    if (!receive_image(client->socket, image)) {
+        handle_threads(image, client); // Perform operations to handle the received image
         free(image); // Free the memory allocated for the image
     } else {
         printf("Erreur lors de la réception de l'image\n");
@@ -105,7 +104,7 @@ void handle_server_response(Client *client) {
         clean_str(buffer);
         // Handle different types of server responses
         if(strcmp(buffer, "img") == 0){
-            handle_image(serveur_socket);
+            handle_image(client);
         }
         else if(strcmp(buffer, "exit") == 0){
              printf("Client disconnected\n");
@@ -239,6 +238,7 @@ void main_signal_handler(int signal){
       for (int i = 0; i < MAX_CONNECTED_CLIENTS; i++) {
         if (threads[i] != 0) {
         clients[i]->has_to_terminate = true;
+        clients[i]->is_connected = false;
         pthread_kill(threads[i], SIGUSR1);
         }
       }

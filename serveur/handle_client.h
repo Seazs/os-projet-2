@@ -1,6 +1,8 @@
 #ifndef _HANDLE_CLIENT_H_
 #define _HANDLE_CLIENT_H_
 
+#include <stdatomic.h>
+
 #include <stdbool.h>
 typedef struct {
     unsigned int taille;
@@ -17,7 +19,7 @@ typedef struct {
 void * handle_client(void* arg_client);
 
 
-void handle_image(int serveur_socket);
+void handle_image(Client *client);
 
 void handle_server_response(Client *client);
 

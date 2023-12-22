@@ -6,7 +6,7 @@ unsigned int compare_image(Image *image, char *db_image);
 
 void *compare_images_thread(void *arg);
 
-void handle_threads(Image *image, int client_socket);
+void handle_threads(Image *image, Client *client);
 
 
 

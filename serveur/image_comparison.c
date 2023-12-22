@@ -65,9 +65,12 @@ void *compare_images_thread(void *arg){
     return NULL;
 }
 
-void handle_threads(Image *image, int client_socket){
+void handle_threads(Image *image, Client *client){
     pthread_t threads[NB_THREADS];
     Thread_data thread_data[NB_THREADS];
+
+    int client_socket = client->socket;
+    printf("has to terminate : %d\n", client->has_to_terminate);
 
     // lance les threads
     for (int i = 0; i<NB_THREADS; i++){

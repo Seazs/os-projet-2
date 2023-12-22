@@ -20,7 +20,7 @@
 volatile sig_atomic_t signalRecu = 0; // Atomic flag to indicate if a signal has been received
 atomic_int nb_clients = 0; // Atomic counter for the number of connected clients
 pthread_t threads[MAX_CONNECTED_CLIENTS]; // Array to store thread IDs
-Client clients[MAX_CONNECTED_CLIENTS]; // Array to store client information
+Client *clients[MAX_CONNECTED_CLIENTS]; // Array to store client information
 
 /**
  * Function to handle a client connection in a separate thread.
@@ -51,15 +51,14 @@ void *handle_client(void *arg_client) {
         return NULL;
     }
 
-    Client client = *(Client *)arg_client;
-    pthread_t thread_id = pthread_self();
-
+    Client *client = (Client *)arg_client;
+    
     handle_server_response(client); // Perform operations to handle the client connection
     
     
     atomic_fetch_sub(&nb_clients, 1); // Decrement the number of connected clients
-    threads[client.client_number] = 0; // Clear the thread ID for the client
-    close(client.socket); // Close the client socket
+    threads[client->client_number] = 0; // Clear the thread ID for the client
+    close(client->socket); // Close the client socket
     free(arg_client); // Free the memory allocated for the client struct
 
     return NULL;
@@ -86,12 +85,12 @@ void handle_image(int serveur_socket) {
  * Handles the server's response.
  * @param client The client to handle the response for.
  */
-void handle_server_response(Client client) {
-    int serveur_socket = client.socket;
+void handle_server_response(Client *client) {
+    int serveur_socket = client->socket;
     char buffer[10000];
 
     // Loop while the client is connected
-    while(client.is_connected) {
+    while(client->is_connected) {
         int ret = 0;
         // Receive a message from the server
         if((ret = receive_message(serveur_socket, buffer))){
@@ -99,7 +98,7 @@ void handle_server_response(Client client) {
                 continue; 
             }
             else if(ret == 2){ // EINTR
-                client.is_connected = false;
+                client->is_connected = false;
                 break;
             }
         }
@@ -110,11 +109,11 @@ void handle_server_response(Client client) {
         }
         else if(strcmp(buffer, "exit") == 0){
              printf("Client disconnected\n");
-             client.is_connected = false;
+             client->is_connected = false;
         }
         else{
             printf("Error, no announcement signal received\n");
-            client.is_connected = false;
+            client->is_connected = false;
         }
     }
 }
@@ -184,7 +183,7 @@ void accept_connections(int server_socket) {
         client->thread_id = thread_id;
         client->client_number = nb_clients;
         client->has_to_terminate = false;
-        clients[nb_clients] = *client;
+        clients[nb_clients] = client;
         threads[nb_clients] = thread_id;
         atomic_fetch_add(&nb_clients, 1);
 
@@ -239,7 +238,7 @@ void main_signal_handler(int signal){
       printf("Fermeture du serveur\n");
       for (int i = 0; i < MAX_CONNECTED_CLIENTS; i++) {
         if (threads[i] != 0) {
-        clients[i].has_to_terminate = true;
+        clients[i]->has_to_terminate = true;
         pthread_kill(threads[i], SIGUSR1);
         }
       }

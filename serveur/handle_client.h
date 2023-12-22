@@ -19,9 +19,7 @@ void * handle_client(void* arg_client);
 
 void handle_image(int serveur_socket);
 
-void handle_message(int serveur_socket, char* buffer);
-
-void handle_server_response(Client client);
+void handle_server_response(Client *client);
 
 int accept_new_connection(int server_socket);
 

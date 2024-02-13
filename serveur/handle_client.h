@@ -2,7 +2,7 @@
 #define _HANDLE_CLIENT_H_
 
 #include <stdatomic.h>
-
+#include <pthread.h>
 #include <stdbool.h>
 typedef struct {
     unsigned int taille;
@@ -11,7 +11,7 @@ typedef struct {
 
 typedef struct {
     int socket;
-    bool is_connected;
+    atomic_bool is_connected;
     bool has_to_terminate;
     int client_number;
     pthread_t thread_id;
@@ -28,6 +28,8 @@ int accept_new_connection(int server_socket);
 void accept_connections(int server_socket);
 
 int set_main_signal_handler();
+
+int set_client_signal_handler();
 
 void main_signal_handler(int signal);
 

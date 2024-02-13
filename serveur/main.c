@@ -20,6 +20,8 @@
 
 
 int main() {
+
+   signal(SIGPIPE, SIG_IGN); // Ignore SIGPIPE to avoid crashing when a client disconnects unexpectedly
    
    int server_fd =  checked(socket(AF_INET, SOCK_STREAM, 0));
 

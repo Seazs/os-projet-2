@@ -1,4 +1,15 @@
 #!/bin/bash
+# le pid du client est pokedex-client
+client_pid="../pokedex-client"
+
+handle_sigint() {
+    echo "SIGINT received"
+    pkill -f "$client_pid"
+    cat "$temp_output_file"
+    rm -f "$temp_output_file"
+    exit 1
+}
+
 
 temp_output_file=$(mktemp)
 result="$(
@@ -9,6 +20,7 @@ result="$(
     done < test-new-images.data | ../pokedex-client > "$temp_output_file" 2>&1 | tail -n $count_images
     )"
     
+wait $client_pid
 # Imprimer la sortie du programme pour déboguer
 cat "$temp_output_file"
 rm -f "$temp_output_file"

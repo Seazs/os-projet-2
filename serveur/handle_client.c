@@ -20,6 +20,7 @@ volatile sig_atomic_t signalRecu = 0; // Atomic flag to indicate if a signal has
 atomic_int nb_clients = 0; // Atomic counter for the number of connected clients
 pthread_t threads[MAX_CONNECTED_CLIENTS]; // Array to store thread IDs
 Client *clients[MAX_CONNECTED_CLIENTS]; // Array to store client information
+pthread_key_t keys[MAX_CONNECTED_CLIENTS]; // Array to store thread-specific data keys
 
 /**
  * Function to handle a client connection in a separate thread.
@@ -27,11 +28,16 @@ Client *clients[MAX_CONNECTED_CLIENTS]; // Array to store client information
  * @return NULL
  */
 void *handle_client(void *arg_client) {
-    set_client_signal_handler(); // Set the signal handler for the client thread
+    if(set_client_signal_handler() != 0) { // Set the signal handler for the client thread
+        return NULL;
+    }
 
     Client *client = (Client *)arg_client;
 
-    pthread_setspecific(pthread_self(), client); // Set the client struct as thread-specific data
+    pthread_key_t key;
+    pthread_key_create(&key, NULL); // Create a thread-specific data key
+
+    pthread_setspecific(key, client); // Set the client struct as thread-specific data
 
     handle_server_response(client); // Perform operations to handle the client connection
     
@@ -159,11 +165,11 @@ void accept_connections(int server_socket) {
             continue;
         }
 
-        // Set the client's thread ID and client number
+        // Set the client's thread ID and number
         client->thread_id = thread_id;
-        printf("thread_id : %ld\n", thread_id);
         client->client_number = nb_clients;
         client->has_to_terminate = false;
+
         clients[nb_clients] = client;
         threads[nb_clients] = thread_id;
         atomic_fetch_add(&nb_clients, 1);
@@ -193,14 +199,14 @@ int set_client_signal_handler(){
     sigaddset(&set, SIGINT);
     if (pthread_sigmask(SIG_BLOCK, &set, NULL) != 0) {
         perror("pthread_sigmask");
-        return NULL;
+        return 1;
     }
     // unblock SIGPIPE signal
     sigemptyset(&set);
     sigaddset(&set, SIGPIPE);
     if (pthread_sigmask(SIG_UNBLOCK, &set, NULL) != 0) {
         perror("pthread_sigmask");
-        return NULL;
+        return 1;
     }
 
     // Handle SIGPIPE and SIGUSR1 signals (sent by the main thread when receiving SIGINT)
@@ -210,12 +216,13 @@ int set_client_signal_handler(){
     sigemptyset(&action.sa_mask);
     if (sigaction(SIGUSR1, &action, NULL) != 0) {
         perror("sigaction()");
-        return NULL;
+        return 1;
     }
     if (sigaction(SIGPIPE, &action, NULL) != 0) {
         perror("sigaction()");
-        return NULL;
+        return 1;
     }
+    return 0;
 }
 
 /**
@@ -276,14 +283,19 @@ void main_signal_handler(int signal){
  */
 void client_thread_signal_handler(int signal){
    switch (signal) {
-   case SIGINT:
-        // If the signal is SIGINT (Ctrl+C), print a message
-        printf("client : SIGINT\n");
-        break;
    case SIGPIPE:
         // If the signal is SIGPIPE (broken pipe), print a message
         printf("client : SIGPIPE\n");
-        Client *client = pthread_getspecific(pthread_self()); // Get the client struct from thread-specific data
+        pthread_key_t key;
+        for (int i = 0; i < MAX_CONNECTED_CLIENTS; i++) {
+            if (clients[i] != NULL) {
+                if (pthread_equal(pthread_self(), clients[i]->thread_id)) {
+                    key = keys[i];
+                    break;
+                }
+            }
+        }
+        Client *client = pthread_getspecific(key); // Get the client struct from thread-specific data
         printf("Client %d disconnected\n", client->client_number);
         client->is_connected = false;
         client->has_to_terminate = true;

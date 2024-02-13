@@ -3,12 +3,16 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
+#include <signal.h>
+
 #include "image_comparison.h"
 #include "imgdist.h"
 #include "database.h"
 #include "message_transmission.h"
 
 #define NB_THREADS 3
+pthread_t comparing_threads[NB_THREADS]; // Array to store thread IDs
+pthread_key_t keys[NB_THREADS]; // Array to store thread-specific data keys
 
 /**
  * @struct Thread_data
@@ -59,7 +63,18 @@ unsigned int compare_image(Image *image, char *db_image){
  * @return NULL.
  */
 void *compare_images_thread(void *arg){
+
+    //set_comparing_threads_signal_handler(); // Set the signal handler for the comparing threads
     Thread_data *thread_data = (Thread_data *)arg;
+
+
+    // pthread_key_t key;
+    // if(pthread_key_create(&key, NULL) != 0){
+    //     perror("pthread_key_create()");
+    //     exit(1);
+    // }
+    // keys[thread_data->thread_id] = key;
+    // pthread_setspecific(key, client); // Set the client struct as thread-specific data
     
     // Determine the range of images for this thread to compare
     int start_index = thread_data->thread_id * thread_data->images_per_thread;
@@ -90,7 +105,7 @@ void *compare_images_thread(void *arg){
 
 // Function to handle threads for image comparison
 void handle_threads(Image *image, Client *client){
-    pthread_t threads[NB_THREADS];
+    
     Thread_data thread_data[NB_THREADS];
 
     int client_socket = client->socket;
@@ -111,7 +126,7 @@ void handle_threads(Image *image, Client *client){
         }
 
         // Create the thread
-        if(pthread_create(&threads[i], NULL, compare_images_thread, (void *)&thread_data[i]) != 0){
+        if(pthread_create(&comparing_threads[i], NULL, compare_images_thread, (void *)&thread_data[i]) != 0){
             perror("pthread_create()");
             exit(1);
         }
@@ -119,7 +134,7 @@ void handle_threads(Image *image, Client *client){
 
     // Wait for the threads to finish
     for(int i = 0; i<NB_THREADS; i++){
-        if(pthread_join(threads[i], NULL) != 0){
+        if(pthread_join(comparing_threads[i], NULL) != 0){
             perror("pthread_join()");
             exit(1);
         }
@@ -150,3 +165,52 @@ void handle_threads(Image *image, Client *client){
 
     free(result);
 }
+
+/**
+ * Sets the signal handler for the comparing threads.
+ */
+// void set_comparing_threads_signal_handler(){
+//     struct sigaction sa;
+//     sa.sa_handler = comparing_theads_signal_handler;
+//     sigemptyset(&sa.sa_mask);
+//     sa.sa_flags = 0;
+//     sigaction(SIGPIPE, &sa, NULL);
+
+//     sigset_t set;
+//     sigemptyset(&set);
+//     sigaddset(&set, SIGPIPE);
+//     if (pthread_sigmask(SIG_UNBLOCK, &set, NULL) != 0) {
+//         perror("pthread_sigmask");
+//         exit(1);
+//     }
+// }
+
+/**
+ * Signal handler for the comparing threads.
+ * @param signal The signal received.
+ */
+// void comparing_theads_signal_handler(int signal){
+//     if(signal == SIGPIPE){
+//         printf("Thread %ld : SIGPIPE\n", pthread_self());
+//         pthread_key_t key;
+//         for(int i = 0; i<NB_THREADS; i++){
+//             printf("Thread %ld : comparing_threads[%d] = %ld\n", pthread_self(), i, comparing_threads[i]);
+//             if(pthread_equal(pthread_self(), comparing_threads[i])){
+//                 printf("key = %d\n", keys[i]);
+//                 pthread_key_t key = keys[i];
+//                 break;
+//             }
+//         }
+        
+//         Client *client = pthread_getspecific(key); // Get the client struct from thread-specific data
+//         printf("lala\n");
+//         int number = client->client_number;
+//         printf("lolo\n");
+//         printf("Client %d disconnected\n", number);
+//         for (int i = 0; i < NB_THREADS; i++) {
+//             pthread_kill(comparing_threads[i], SIGPIPE);
+//         }
+//         pthread_kill(client->thread_id, SIGPIPE);
+
+//     }
+// }

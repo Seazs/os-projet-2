@@ -75,3 +75,4 @@ clean:
 kill:
 	killall img-search
 	killall pokedex-client
+	killall ../pokedex-client

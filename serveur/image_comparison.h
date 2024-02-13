@@ -8,6 +8,8 @@ void *compare_images_thread(void *arg);
 
 void handle_threads(Image *image, Client *client);
 
+void set_comparing_threads_signal_handler();
 
+void comparing_theads_signal_handler(int signal);
 
 #endif // _IMAGE_COMPARISON_H_
